@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interaktiver Lebenslauf von Ivan: Bildung, Projekte, Fähigkeiten, Dokumente und aktuelle Lernfortschritte.">
+    <meta name="theme-color" content="#09090b">
+    <meta name="color-scheme" content="dark">
+    <title>Mein Lebenslauf | IT Style</title>
+    <!-- Local, precompiled styles: no runtime build step required -->
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="css/vendor/tailwind.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/about.css">
+    <link rel="stylesheet" href="css/education.css">
+    <!-- Lucide Icons -->
+    <script src="assets/vendor/lucide.min.js"></script>
+</head>
+<body class="font-sans antialiased selection:bg-gx-yellow selection:text-gx-bg relative">
+    <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
+
+    <div id="admin-bar" class="fixed top-0 w-full z-[60] bg-gx-yellow text-gx-bg font-bold px-4 py-2 flex justify-between items-center hidden shadow-[0_0_20px_rgba(255,215,0,0.5)]">
+        <div class="flex items-center gap-2">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            <span>Administrator-Modus aktiviert</span>
+        </div>
+        <div class="flex gap-4">
+            <button type="button" onclick="exportDataToJson(); playClickSound();" class="bg-black text-gx-yellow px-4 py-1 flex items-center gap-2 hover:bg-zinc-800 transition-colors border border-black">
+                <i data-lucide="download" class="w-4 h-4"></i> data.json exportieren
+            </button>
+            <button type="button" onclick="toggleAdminMode(); playClickSound();" aria-label="Administrator-Modus schließen" class="bg-transparent text-gx-bg hover:text-black transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-gx-bg/95 border-b border-zinc-800 top-0 transition-colors" id="main-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gx-yellow text-gx-bg flex items-center justify-center font-mono font-bold text-xl">IT</div>
+                    <span class="font-bold text-xl tracking-wider uppercase text-gx-text">Lebenslauf</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-6">
+                        <a href="#home" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Startseite</a>
+                        <a href="#about" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Über mich</a>
+                        <a href="#education" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Bildung</a>
+                        <a href="#projects" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Projekte</a>
+                        <a href="#books" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Bibliothek</a>
+                        <a href="#documents" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Dokumente</a>
+                        <a href="#blog" onclick="playClickSound()" class="nav-link hover:text-gx-yellow px-3 py-2 text-sm font-medium transition-colors">Blog</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button type="button" id="mobile-menu-btn" onclick="playClickSound()" aria-label="Navigation öffnen" aria-controls="mobile-menu" aria-expanded="false" class="text-gx-text hover:text-gx-yellow focus:outline-none">
+                        <i data-lucide="menu"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gx-card border-b border-zinc-800">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
+                <a href="#home" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Startseite</a>
+                <a href="#about" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Über mich</a>
+                <a href="#education" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Bildung</a>
+                <a href="#projects" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Projekte</a>
+                <a href="#books" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Bibliothek</a>
+                <a href="#documents" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Dokumente</a>
+                <a href="#blog" onclick="playClickSound()" class="hover:text-gx-yellow block px-3 py-2 text-base font-medium">Blog</a>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="relative z-10 pt-16">
+        <!-- Hero Section -->
+        <section id="home" class="min-h-[90vh] flex items-center justify-center px-4 py-20 max-w-7xl mx-auto relative group/hero">
+            <button type="button" onclick="openFormModal('profile'); playClickSound();" class="admin-only absolute top-20 right-4 bg-gx-yellow text-gx-bg px-4 py-2 font-bold shadow-lg z-20 gap-2 items-center">
+                <i data-lucide="edit"></i> Startseite bearbeiten
+            </button>
+            <div class="grid md:grid-cols-2 gap-12 items-center w-full">
+                <div class="fade-up order-2 md:order-1">
+                    <div class="inline-block px-3 py-1 mb-6 border border-gx-yellow/30 bg-gx-yellow/10 text-gx-yellow font-mono text-sm rounded-none">
+                        > Systemstatus: Online
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-bold mb-4 tracking-tight">
+                        Hallo, ich bin <br>
+                        <span id="hero-name" class="text-transparent bg-clip-text bg-gradient-to-r from-gx-yellow to-yellow-600">Laden...</span>
+                    </h1>
+                    <p id="hero-role" class="text-xl text-gx-muted mb-8 font-light max-w-lg">
+                        Laden...
+                    </p>
+
+                    <!-- Обновленный контейнер кнопок -->
+                    <div class="flex flex-wrap gap-4" id="hero-buttons-container">
+                        <a href="#projects" onclick="playClickSound()" class="px-8 py-3 bg-gx-yellow text-gx-bg font-bold uppercase tracking-wider hover:bg-yellow-500 hover:scale-105 transition-all flex items-center gap-2">
+                            Meine Projekte <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#documents" onclick="playClickSound()" class="px-8 py-3 border border-zinc-700 hover:border-gx-yellow text-gx-text uppercase tracking-wider transition-all hover:scale-105 glow-hover flex items-center gap-2">
+                            Dokumente <i data-lucide="folder-open" class="w-5 h-5"></i>
+                        </a>
+                        <!-- Новая кнопка "Блог" -->
+                        <a href="#blog" onclick="playClickSound()" class="px-8 py-3 border border-dashed border-zinc-600 hover:border-gx-yellow text-gx-muted hover:text-gx-yellow uppercase tracking-wider transition-all hover:-translate-y-1 flex items-center gap-2">
+                            Blog <i data-lucide="rss" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Hero Photo Box -->
+                <div class="fade-up order-1 md:order-2 flex justify-center md:justify-end">
+                    <div class="relative w-72 h-72 md:w-96 md:h-96 tech-border p-4 bg-gx-card">
+                        <img id="hero-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Porträt von Ivan" class="w-full h-full object-cover grayscale hover:grayscale-0 cursor-pointer transition-opacity duration-300" decoding="async" onclick="openPhotoGallery(); playClickSound();">
+                        <div class="absolute -bottom-4 -left-4 w-24 h-24 bg-gx-yellow z-[-1] opacity-20 blur-xl"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="about-cyber-section py-20 relative group/about overflow-hidden">
+            <div class="about-cyber-shell fade-up">
+                <div class="about-cyber-frame about-v119">
+                    <div class="about-cyber-head">
+                        <div class="about-cyber-alert" aria-hidden="true">!</div>
+                        <h2 class="about-cyber-title">
+                            <span>Über mich</span>
+                        </h2>
+                        <div class="about-cyber-title-line" aria-hidden="true"></div>
+                        <button type="button" onclick="openFormModal('about'); playClickSound();" class="about-cyber-admin-btn admin-only bg-gx-yellow text-gx-bg px-4 py-2 font-bold shadow-lg gap-2 items-center whitespace-nowrap">
+                            <i data-lucide="edit"></i> Bearbeiten
+                        </button>
+                    </div>
+
+                    <div class="about-v119-main">
+                        <article class="about-v119-profile about-cyber-cornered">
+                            <div class="about-v119-profile-top">
+                                <div id="about-focus-hero-icon" class="about-v119-profile-icon" aria-hidden="true">
+                                    <i data-lucide="cpu"></i>
+                                </div>
+                            </div>
+
+                            <div class="about-v119-profile-copy">
+                                <div class="about-v119-subhead">
+                                    <i data-lucide="user-round"></i>
+                                    <h3>Kurzprofil</h3>
+                                </div>
+                                <p id="about-intro-short" class="about-v119-intro">Laden...</p>
+                                <button type="button" onclick="openAboutMoreModal(); playClickSound();" class="about-v119-more">
+                                    <span>Mehr</span>
+                                    <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+
+                            <div id="about-focus-slider" class="about-v119-focus" aria-label="Mein Fokus" aria-live="polite">
+                                <div class="about-v119-focus-head">
+                                    <span>Mein Fokus</span>
+                                    <button id="about-focus-next" type="button" onclick="nextAboutFocusSlide(true); playClickSound();" aria-label="Nächsten Fokus anzeigen">
+                                        <i data-lucide="arrow-right"></i>
+                                    </button>
+                                </div>
+                                <div id="about-focus-slide" class="about-v119-focus-slide">
+                                    <h4 id="about-focus-title">Aktueller Fokus</h4>
+                                    <p id="about-focus-text">KI, Automatisierung &amp; digitale Produkte</p>
+                                </div>
+                                <div id="about-focus-dots" class="about-v119-focus-dots" aria-label="Fokus auswählen">
+                                    <button type="button" class="is-active" onclick="setAboutFocusSlide(0, true);" aria-label="Fokus 1 anzeigen" aria-current="true"></button>
+                                    <button type="button" onclick="setAboutFocusSlide(1, true);" aria-label="Fokus 2 anzeigen"></button>
+                                    <button type="button" onclick="setAboutFocusSlide(2, true);" aria-label="Fokus 3 anzeigen"></button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <div class="about-v119-details">
+                        <article class="about-cyber-panel about-v119-panel about-cyber-cornered">
+                            <div class="about-cyber-panel-head">
+                                <i data-lucide="file-text" class="about-cyber-panel-icon"></i>
+                                <h3>Kurz &amp; wichtig</h3>
+                            </div>
+                            <div id="about-facts-grid" class="about-cyber-facts-grid">
+                                <!-- Facts populated by JS -->
+                            </div>
+                        </article>
+
+                        <article class="about-cyber-panel about-v119-panel about-cyber-cornered">
+                            <div class="about-cyber-panel-head">
+                                <i data-lucide="heart" class="about-cyber-panel-icon"></i>
+                                <h3>Werte &amp; Prinzipien</h3>
+                                <button id="about-collection-btn-principles" type="button" onclick="openAboutCollectionModal('principles'); playClickSound();" class="about-v119-all-skills">
+                                    <span>Alle</span>
+                                    <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                            <div id="about-principles-grid" class="about-cyber-principles-grid">
+                                <!-- Principles populated by JS -->
+                            </div>
+                        </article>
+                        </div>
+                    </div>
+
+                    <div class="about-v119-skills about-cyber-cornered">
+                        <div class="about-cyber-skills-head">
+                            <i data-lucide="zap" class="about-cyber-skills-icon"></i>
+                            <h3>Kernfähigkeiten</h3>
+                            <button id="about-collection-btn-skills" type="button" onclick="openAboutCollectionModal('skills'); playClickSound();" class="about-v119-all-skills">
+                                <span>Alle</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div id="about-skills-grid" class="about-cyber-skills-grid">
+                            <!-- Skills populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Education section -->
+        <section id="education" class="education-section py-20">
+            <div class="fade-up education-rebuild-shell">
+                <div class="education-rebuild-head">
+                    <h2 class="education-rebuild-title">Bildung</h2>
+                    <p class="education-rebuild-subtitle">Mein Weg – Schritt für Schritt.</p>
+                </div>
+                <div id="education-timeline-container" class="education-timeline-container">
+                    <!-- Bildung timeline populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-20 bg-gx-card border-y border-zinc-800">
+            <div class="max-w-7xl mx-auto px-4 fade-up">
+                <div class="flex justify-between items-center mb-12">
+                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
+                        <span class="text-zinc-600">03.</span> Projekte
+                        <span class="h-px bg-zinc-800 flex-1 hidden md:block" aria-hidden="true"></span>
+                    </h2>
+                    <button type="button" onclick="openFormModal('project'); playClickSound();" class="admin-only ml-4 px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Projekt hinzufügen
+                    </button>
+                </div>
+
+                <div id="projects-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Projects populated by JS -->
+                </div>
+
+                <div class="mt-10 text-center">
+                    <button type="button" id="btn-more-projects" onclick="toggleMore('projects'); playClickSound();" class="px-6 py-3 border border-zinc-700 text-gx-text hover:border-gx-yellow hover:text-gx-yellow transition-colors font-mono text-sm">
+                        Mehr Projekte anzeigen
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Books Section -->
+        <section id="books" class="py-20 max-w-7xl mx-auto px-4">
+            <div class="fade-up">
+                <div class="flex justify-between items-center mb-12">
+                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
+                        <span class="text-zinc-600">04.</span> Bibliothek
+                        <span class="h-px bg-zinc-800 flex-1 hidden md:block" aria-hidden="true"></span>
+                    </h2>
+                    <button type="button" onclick="openFormModal('book'); playClickSound();" class="admin-only ml-4 px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Buch hinzufügen
+                    </button>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-12">
+                    <div class="lg:col-span-1">
+                        <div class="bg-gx-card p-6 border border-zinc-800 tech-border">
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                                <i data-lucide="star" class="text-gx-yellow fill-gx-yellow"></i> Top-5 Favoriten
+                            </h3>
+                            <ul id="top-books-container" class="space-y-4">
+                                <!-- Top books populated by JS -->
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                            <i data-lucide="book-open" class="text-zinc-500"></i> Gelesen/Gehört dieses Jahr
+                        </h3>
+                        <div id="books-container" class="grid sm:grid-cols-2 gap-4">
+                            <!-- Books populated by JS -->
+                        </div>
+                        <div class="mt-6 text-center">
+                            <button type="button" id="btn-more-books" onclick="toggleMore('books'); playClickSound();" class="px-6 py-3 border border-zinc-700 text-gx-text hover:border-gx-yellow hover:text-gx-yellow transition-colors font-mono text-sm w-full md:w-auto">
+                                Mehr anzeigen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Documents Section -->
+        <section id="documents" class="py-20 bg-gx-card border-y border-zinc-800 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+            <div class="max-w-7xl mx-auto px-4 relative z-10 fade-up">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
+                        <span class="text-zinc-600">05.</span> Dokumente
+                    </h2>
+                    <button type="button" onclick="openFormModal('document'); playClickSound();" class="admin-only px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Hinzufügen
+                    </button>
+                </div>
+                <p class="text-gx-muted mb-10">Zertifikate, Zeugnisse und Diplome zum Ansehen und Herunterladen.</p>
+
+                <div id="documents-container" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Documents populated by JS -->
+                </div>
+
+                <div class="mt-10 text-center">
+                    <button type="button" id="btn-more-documents" onclick="toggleMore('documents'); playClickSound();" class="px-6 py-3 border border-zinc-700 text-gx-text hover:border-gx-yellow hover:text-gx-yellow transition-colors font-mono text-sm">
+                        Mehr Dokumente anzeigen
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <section id="blog" class="py-20 max-w-7xl mx-auto px-4 relative">
+            <div class="fade-up">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
+                        <span class="text-zinc-600">06.</span> Blog / Notizen
+                        <span class="h-px bg-zinc-800 flex-1 hidden md:block" aria-hidden="true"></span>
+                    </h2>
+                    <button type="button" onclick="openFormModal('blog'); playClickSound();" class="admin-only px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Beitrag erstellen
+                    </button>
+                </div>
+                <p class="text-gx-muted mb-10">Kurze Notizen über Dinge, die ich derzeit aktiv lerne und erforsche.</p>
+
+                <div id="blog-container" class="grid md:grid-cols-2 gap-8">
+                    <!-- Blog posts populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gx-card border-t border-zinc-800 py-8 text-center text-zinc-400 font-mono text-sm mt-10">
+        <p>Erstellt mit <i data-lucide="coffee" class="w-4 h-4 inline-block text-gx-yellow mx-1"></i> und <i data-lucide="heart" class="w-4 h-4 inline-block text-gx-yellow mx-1"></i></p>
+        <p class="mt-2">&copy; 2026 Alle Rechte vorbehalten.</p>
+        <p class="mt-4 text-xs text-zinc-400 admin-only-block hidden">Tipp: Ctrl + Shift + R zum Beenden des Admin-Modus</p>
+    </footer>
+
+    <!-- Modals Overlay -->
+    <div id="global-modal" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
+        <div id="modal-container" tabindex="-1" class="bg-gx-card border border-zinc-700 w-full max-w-2xl relative shadow-2xl shadow-gx-yellow/10 transform transition-transform duration-300 my-auto rounded-sm overflow-hidden">
+            <!-- Modal Content Injected via JS -->
+        </div>
+    </div>
+    <div id="gx-toast-region" class="gx-toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Application scripts are classic scripts to preserve file:// compatibility -->
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/navigation.js"></script>
+    <script src="data/default-data.js"></script>
+    <script src="js/core/storage.js"></script>
+    <script src="js/ui/interactions.js"></script>
+    <script src="js/render/about.js"></script>
+    <script src="js/render/sections.js"></script>
+    <script src="js/admin/editor.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
