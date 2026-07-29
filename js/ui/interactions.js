@@ -30,9 +30,10 @@ function updateSliderView() {
 
 function startSlideshow() {
     clearInterval(slideIntervalId);
+    slideIntervalId = null;
     const p = state.data.profile;
     if (!document.hidden && p.slideshowActive && Array.isArray(p.images) && p.images.length > 1) {
-        const sec = (p.slideshowInterval || 4) * 1000;
+        const sec = (p.slideshowInterval || 10) * 1000;
         slideIntervalId = setInterval(() => {
             currentSlide = (currentSlide + 1) % p.images.length;
             updateSliderView();
@@ -43,6 +44,58 @@ function startSlideshow() {
 document.addEventListener('visibilitychange', startSlideshow);
 
 
+// --- ЛОКАЛЬНІ ФОТО ДЛЯ STARTSEITE --- //
+const STARTSEITE_IMAGE_BASES = Array.from(
+    { length: 5 },
+    (_, index) => `assets/images/startseite/starsaite_${index + 1}`
+);
+const STARTSEITE_IMAGE_EXTENSIONS = ['webp', 'jpg', 'jpeg', 'png', 'avif'];
+
+function testImagePath(path) {
+    return new Promise(resolve => {
+        const probe = new Image();
+        let finished = false;
+        const finish = value => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timeoutId);
+            probe.onload = null;
+            probe.onerror = null;
+            resolve(value);
+        };
+        const timeoutId = setTimeout(() => finish(''), 3000);
+        probe.onload = () => finish(path);
+        probe.onerror = () => finish('');
+        probe.src = path;
+    });
+}
+
+async function findStartseiteImage(basePath) {
+    for (const extension of STARTSEITE_IMAGE_EXTENSIONS) {
+        const foundPath = await testImagePath(`${basePath}.${extension}`);
+        if (foundPath) return foundPath;
+    }
+    return '';
+}
+
+async function loadBundledStartseiteImages() {
+    const foundImages = (await Promise.all(
+        STARTSEITE_IMAGE_BASES.map(findStartseiteImage)
+    )).filter(Boolean);
+
+    // Якщо папка не містить жодного фото, залишаємо дані CMS без змін.
+    if (foundImages.length === 0) return;
+
+    state.data.profile.images = foundImages;
+    state.data.profile.slideshowActive = foundImages.length > 1;
+    state.data.profile.slideshowInterval = 10;
+    currentSlide = 0;
+
+    updateSliderView();
+    startSlideshow();
+}
+
+
 function resetSpecialModalClasses() {
     const overlay = document.getElementById('global-modal');
     if (!overlay) return;
@@ -50,21 +103,60 @@ function resetSpecialModalClasses() {
     overlay.classList.remove('about-more-modal-open');
     overlay.classList.remove('about-main-modal-open');
     overlay.classList.remove('about-drawer-open');
+    overlay.classList.remove('about-drawer-from-left');
+    overlay.classList.remove('about-drawer-from-right');
     overlay.removeAttribute('aria-labelledby');
+    delete overlay.dataset.aboutDrawerType;
 }
 
 let modalCloseTimerId = null;
+let modalLifecycleId = 0;
 let modalReturnFocus = null;
 let bodyOverflowBeforeModal = '';
+
+function openAboutSideDrawer({
+    html,
+    direction = 'left',
+    containerClass = '',
+    labelledBy = '',
+    drawerType = '',
+    returnFocusSelector = ''
+}) {
+    const overlay = document.getElementById('global-modal');
+    const container = document.getElementById('modal-container');
+    if (!overlay || !container) return;
+
+    const safeDirection = direction === 'right' ? 'right' : 'left';
+    resetSpecialModalClasses();
+    container.className = `about-more-modal about-side-drawer ${containerClass}`.trim();
+    container.innerHTML = html;
+
+    overlay.classList.add('about-more-modal-open');
+    overlay.classList.add('about-drawer-open');
+    overlay.classList.add(`about-drawer-from-${safeDirection}`);
+    if (labelledBy) overlay.setAttribute('aria-labelledby', labelledBy);
+    if (drawerType) overlay.dataset.aboutDrawerType = drawerType;
+
+    activateGlobalModal();
+    const returnFocusTarget = returnFocusSelector ? document.querySelector(returnFocusSelector) : null;
+    if (returnFocusTarget instanceof HTMLElement) modalReturnFocus = returnFocusTarget;
+    refreshIcons();
+}
 
 function activateGlobalModal() {
     const overlay = document.getElementById('global-modal');
     const container = document.getElementById('modal-container');
     if (!overlay || !container) return;
     clearTimeout(modalCloseTimerId);
+    modalCloseTimerId = null;
+    modalLifecycleId += 1;
     if (overlay.classList.contains('hidden')) {
         modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        bodyOverflowBeforeModal = document.body.style.overflow;
+        const focusOverlay = document.getElementById('about-principle-focus-overlay');
+        const focusOverlayOpen = focusOverlay && !focusOverlay.classList.contains('hidden');
+        bodyOverflowBeforeModal = focusOverlayOpen && typeof aboutFocusPreviousOverflow === 'string'
+            ? aboutFocusPreviousOverflow
+            : document.body.style.overflow;
     }
     overlay.classList.remove('hidden');
     overlay.setAttribute('aria-hidden', 'false');

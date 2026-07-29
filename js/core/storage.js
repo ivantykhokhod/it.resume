@@ -35,7 +35,11 @@ function normalizeRootData(value) {
             slideshowActive: profileSource.slideshowActive !== false,
             slideshowInterval: Number.isFinite(interval) ? Math.max(1, Math.min(60, Math.round(interval))) : defaultData.profile.slideshowInterval
         },
-        projects: normalizeCollection(source.projects, defaultData.projects),
+        projectsRevision: PROJECT_SHOWCASE_REVISION,
+        projects: migrateProjectShowcaseData(
+            normalizeCollection(source.projects, defaultData.projects),
+            source.projectsRevision
+        ),
         books: normalizeCollection(source.books, defaultData.books),
         documents: normalizeCollection(source.documents, defaultData.documents),
         blogs: normalizeCollection(source.blogs, defaultData.blogs),

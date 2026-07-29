@@ -672,27 +672,28 @@ function closeAboutPrincipleFocus(preserveBodyLock = false) {
 
 function openAboutCollectionModal(type) {
     const isPrinciples = type === 'principles';
+    const safeType = isPrinciples ? 'principles' : 'skills';
     const title = isPrinciples ? 'Werte & Prinzipien' : 'Alle Fähigkeiten';
-    const overlay = document.getElementById('global-modal');
-    const container = document.getElementById('modal-container');
-    resetSpecialModalClasses();
+    const titleId = `about-${safeType}-drawer-title`;
 
-    container.className = 'about-more-modal about-collection-modal';
-    container.innerHTML = `
+    openAboutSideDrawer({
+        direction: 'left',
+        containerClass: 'about-collection-modal about-collection-drawer',
+        labelledBy: titleId,
+        drawerType: safeType,
+        returnFocusSelector: `#about-collection-btn-${safeType}`,
+        html: `
         <div class="about-more-modal-inner" onclick="event.stopPropagation();">
             <div class="about-more-modal-head">
-                <h2 class="about-more-modal-title">${escapeHtml(title)}</h2>
-                <button type="button" onclick="closeModal(); playClickSound();" class="about-more-modal-close" aria-label="${escapeHtml(title)} schließen">
-                    <i data-lucide="x"></i>
+                <h2 id="${titleId}" class="about-more-modal-title">${escapeHtml(title)}</h2>
+                <button type="button" onclick="closeModal(); playClickSound();" class="about-more-modal-close about-drawer-back about-drawer-forward" aria-label="${escapeHtml(title)} schließen">
+                    <i data-lucide="arrow-right"></i>
                 </button>
             </div>
             <div class="about-collection-grid">
-                ${renderAboutCollectionCards(isPrinciples ? 'principles' : 'skills')}
+                ${renderAboutCollectionCards(safeType)}
             </div>
         </div>
-    `;
-
-    overlay.classList.add('about-more-modal-open');
-    activateGlobalModal();
-    refreshIcons();
+    `
+    });
 }

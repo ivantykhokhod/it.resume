@@ -50,3 +50,4 @@ document.getElementById('global-modal').addEventListener('click', (e) => {
 
 // Запуск CMS
 loadData();
+loadBundledStartseiteImages();

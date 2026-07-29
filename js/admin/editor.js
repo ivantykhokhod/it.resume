@@ -44,12 +44,13 @@ function openAboutMoreModal() {
         `;
     }).join('');
 
-    const overlay = document.getElementById('global-modal');
-    const container = document.getElementById('modal-container');
-    resetSpecialModalClasses();
-
-    container.className = 'about-more-modal about-main-drawer';
-    container.innerHTML = `
+    openAboutSideDrawer({
+        direction: 'right',
+        containerClass: 'about-main-drawer',
+        labelledBy: 'about-drawer-title',
+        drawerType: 'about',
+        returnFocusSelector: '.about-v119-more',
+        html: `
         <div class="about-more-modal-inner" onclick="event.stopPropagation();">
             <div class="about-more-modal-head">
                 <button type="button" onclick="closeModal(); playClickSound();" class="about-more-modal-close about-drawer-back" aria-label="Zurück zur Seite">
@@ -62,14 +63,8 @@ function openAboutMoreModal() {
                 ${sectionsHtml}
             </div>
         </div>
-    `;
-
-    overlay.classList.add('about-more-modal-open');
-    overlay.classList.add('about-drawer-open');
-    overlay.setAttribute('aria-labelledby', 'about-drawer-title');
-    activateGlobalModal();
-    setTimeout(() => document.getElementById('about-drawer-title')?.focus({ preventScroll: true }), 40);
-    refreshIcons();
+    `
+    });
 }
 
 function showModal(html) {
@@ -87,9 +82,12 @@ function closeModal() {
     const overlay = document.getElementById('global-modal');
     if (!overlay || overlay.classList.contains('hidden')) return;
     clearTimeout(modalCloseTimerId);
+    const closingLifecycleId = modalLifecycleId;
     const closeDelay = overlay.classList.contains('about-drawer-open') ? 380 : 300;
     overlay.classList.add('opacity-0');
     modalCloseTimerId = setTimeout(() => {
+        modalCloseTimerId = null;
+        if (closingLifecycleId !== modalLifecycleId) return;
         overlay.classList.add('hidden');
         overlay.setAttribute('aria-hidden', 'true');
         resetSpecialModalClasses();
@@ -270,7 +268,7 @@ function openFormModal(type, id = null) {
                         </div>
                         <div>
                             <label for="inp-slider-interval" class="block text-xs text-gx-muted mb-1">Intervall (Sekunden)</label>
-                            <input type="number" id="inp-slider-interval" min="1" max="60" class="w-full bg-zinc-900 border border-zinc-700 p-1 text-white outline-none focus:border-gx-yellow" value="${p.slideshowInterval || 4}">
+                            <input type="number" id="inp-slider-interval" min="1" max="60" class="w-full bg-zinc-900 border border-zinc-700 p-1 text-white outline-none focus:border-gx-yellow" value="${p.slideshowInterval || 10}">
                         </div>
                     </div>
                 </div>
@@ -383,7 +381,7 @@ function saveItem(type, id) {
         state.data.profile.images = editingProfileImages.map(getSafeImageUrl).filter(Boolean).slice(0, 12);
         state.data.profile.slideshowActive = document.getElementById('inp-slider-active').checked;
         const interval = Number.parseInt(document.getElementById('inp-slider-interval').value, 10);
-        state.data.profile.slideshowInterval = Number.isFinite(interval) ? Math.max(1, Math.min(60, interval)) : 4;
+        state.data.profile.slideshowInterval = Number.isFinite(interval) ? Math.max(1, Math.min(60, interval)) : 10;
         currentSlide = 0;
     } else if (type === 'about') {
         state.data.about = migrateAboutData(state.data.about);

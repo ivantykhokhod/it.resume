@@ -660,6 +660,7 @@ function migrateEducationData(data) {
 
 const defaultData = {
     schemaVersion: 2,
+    projectsRevision: PROJECT_SHOWCASE_REVISION,
     profile: {
         name: "Ivan",
         role: "Junior Entwickler, 3D Artist und Technologie-Enthusiast. Ich lerne ständig dazu und erschaffe Neues.",
@@ -667,15 +668,15 @@ const defaultData = {
             createPlaceholderDataUrl('Ivan Photo', 600, 600),
         ],
         slideshowActive: true,
-        slideshowInterval: 4
+        slideshowInterval: 10
     },
     about: getDefaultAboutData(),
     educationItems: getDefaultEducationItems(),
     educationGoal: getDefaultEducationGoal(),
-    projects: [
-        { id: 1, title: 'Habit Tracker', desc: 'Web-App zur Verfolgung täglicher Gewohnheiten.', tech: 'JavaScript, HTML/CSS', img: createPlaceholderDataUrl('Habit Tracker'), icon: 'folder' },
-        { id: 2, title: 'GX Resume Site', desc: 'Genau diese Seite. Single-Page, responsiv.', tech: 'Tailwind, JavaScript', img: createPlaceholderDataUrl('Resume Site'), icon: 'monitor' }
-    ],
+    projects: PROJECT_SHOWCASE_DEFAULTS.map(project => ({
+        ...project,
+        highlights: [...project.highlights]
+    })),
     books: [
         { id: 5, title: 'Atomic Habits', author: 'James Clear', notes: 'Ein absolutes Muss.', top: true },
         { id: 1, title: 'Essentialism', author: 'Greg McKeown', icon: 'headphones', notes: '', top: false }
