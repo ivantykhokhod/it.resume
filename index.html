@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/about.css">
     <link rel="stylesheet" href="css/education.css">
+    <link rel="stylesheet" href="css/projects.css">
     <!-- Lucide Icons -->
     <script src="assets/vendor/lucide.min.js"></script>
 </head>
@@ -222,7 +223,7 @@
             <div class="fade-up education-rebuild-shell">
                 <div class="education-rebuild-head">
                     <h2 class="education-rebuild-title">Bildung</h2>
-                    <p class="education-rebuild-subtitle">Mein Weg – Schritt für Schritt.</p>
+                    <p class="education-rebuild-subtitle">– Mein Weg – Schritt für Schritt.</p>
                 </div>
                 <div id="education-timeline-container" class="education-timeline-container">
                     <!-- Bildung timeline populated by JS -->
@@ -231,26 +232,59 @@
         </section>
 
         <!-- Projects Section -->
-        <section id="projects" class="py-20 bg-gx-card border-y border-zinc-800">
-            <div class="max-w-7xl mx-auto px-4 fade-up">
-                <div class="flex justify-between items-center mb-12">
-                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
-                        <span class="text-zinc-600">03.</span> Projekte
-                        <span class="h-px bg-zinc-800 flex-1 hidden md:block" aria-hidden="true"></span>
-                    </h2>
-                    <button type="button" onclick="openFormModal('project'); playClickSound();" class="admin-only ml-4 px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Projekt hinzufügen
+        <section id="projects" class="projects-section">
+            <div class="projects-shell fade-up">
+                <header class="projects-heading">
+                    <div class="projects-heading-copy">
+                        <h2>Projekte</h2>
+                        <p>Eine Auswahl an Anwendungen und Konzepten,<br>die Planung, Entwicklung und Kreativität verbinden.</p>
+                    </div>
+                    <button type="button" onclick="openFormModal('project'); playClickSound();" class="projects-admin-add admin-only">
+                        <i data-lucide="plus"></i> Projekt hinzufügen
                     </button>
+                </header>
+
+                <div class="projects-workbench">
+                    <aside class="projects-sidebar" aria-label="Projekt auswählen">
+                        <label class="projects-search">
+                            <i data-lucide="search" aria-hidden="true"></i>
+                            <input id="projects-search" type="search" autocomplete="off" placeholder="Projekt auswählen …">
+                            <kbd aria-hidden="true">/</kbd>
+                        </label>
+                        <div id="projects-container" class="projects-picker">
+                            <!-- Projects populated by JS -->
+                        </div>
+                        <button type="button" id="projects-all-toggle" class="projects-all-toggle" aria-controls="projects-all-drawer" aria-expanded="false">
+                            <span><i data-lucide="folder-open" aria-hidden="true"></i>Alle Projekte</span>
+                            <i data-lucide="arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </aside>
+
+                    <article id="project-showcase-detail" class="project-showcase-detail" aria-live="polite">
+                        <!-- Selected project populated by JS -->
+                    </article>
                 </div>
 
-                <div id="projects-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Projects populated by JS -->
-                </div>
-
-                <div class="mt-10 text-center">
-                    <button type="button" id="btn-more-projects" onclick="toggleMore('projects'); playClickSound();" class="px-6 py-3 border border-zinc-700 text-gx-text hover:border-gx-yellow hover:text-gx-yellow transition-colors font-mono text-sm">
-                        Mehr Projekte anzeigen
-                    </button>
+                <div id="projects-all-drawer" class="projects-all-drawer" aria-hidden="true" hidden>
+                    <button type="button" class="projects-all-backdrop" data-projects-all-close aria-label="Projektübersicht schließen"></button>
+                    <section class="projects-all-panel" role="dialog" aria-modal="true" aria-labelledby="projects-all-title">
+                        <header>
+                            <div>
+                                <span>Portfolio</span>
+                                <h3 id="projects-all-title">Alle Projekte</h3>
+                            </div>
+                            <button type="button" class="projects-all-close" data-projects-all-close aria-label="Schließen">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </header>
+                        <label class="projects-search projects-search-drawer">
+                            <i data-lucide="search" aria-hidden="true"></i>
+                            <input id="projects-all-search" type="search" autocomplete="off" placeholder="Projekte durchsuchen …">
+                        </label>
+                        <div id="projects-all-container" class="projects-all-list">
+                            <!-- Complete project list populated by JS -->
+                        </div>
+                    </section>
                 </div>
             </div>
         </section>
@@ -362,11 +396,13 @@
     <!-- Application scripts are classic scripts to preserve file:// compatibility -->
     <script src="js/core/utils.js"></script>
     <script src="js/core/navigation.js"></script>
+    <script src="data/projects-data.js"></script>
     <script src="data/default-data.js"></script>
     <script src="js/core/storage.js"></script>
     <script src="js/ui/interactions.js"></script>
     <script src="js/render/about.js"></script>
     <script src="js/render/sections.js"></script>
+    <script src="js/render/projects.js"></script>
     <script src="js/admin/editor.js"></script>
     <script src="js/app.js"></script>
 </body>
