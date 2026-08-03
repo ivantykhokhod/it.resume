@@ -237,7 +237,6 @@
                 <header class="projects-heading">
                     <div class="projects-heading-copy">
                         <h2>Projekte</h2>
-                        <p>Eine Auswahl an Anwendungen und Konzepten,<br>die Planung, Entwicklung und Kreativität verbinden.</p>
                     </div>
                     <button type="button" onclick="openFormModal('project'); playClickSound();" class="projects-admin-add admin-only">
                         <i data-lucide="plus"></i> Projekt hinzufügen
@@ -246,11 +245,6 @@
 
                 <div class="projects-workbench">
                     <aside class="projects-sidebar" aria-label="Projekt auswählen">
-                        <label class="projects-search">
-                            <i data-lucide="search" aria-hidden="true"></i>
-                            <input id="projects-search" type="search" autocomplete="off" placeholder="Projekt auswählen …">
-                            <kbd aria-hidden="true">/</kbd>
-                        </label>
                         <div id="projects-container" class="projects-picker">
                             <!-- Projects populated by JS -->
                         </div>
@@ -274,7 +268,7 @@
                                 <h3 id="projects-all-title">Alle Projekte</h3>
                             </div>
                             <button type="button" class="projects-all-close" data-projects-all-close aria-label="Schließen">
-                                <i data-lucide="x"></i>
+                                <i data-lucide="arrow-left"></i>
                             </button>
                         </header>
                         <label class="projects-search projects-search-drawer">

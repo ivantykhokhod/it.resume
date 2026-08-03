@@ -55,7 +55,7 @@ function renderProfileAndAbout() {
     initializeAboutFocusSlider();
 }
 
-function renderProjects() {
+function renderProjectsLegacy() {
     const container = document.getElementById('projects-container');
     if (!container) return;
     const limit = 6;
