@@ -1,0 +1,42 @@
+/* --- СТИЛИ (CSS) --- */
+html { scrollbar-gutter: stable; }
+body { background-color: #09090b; color: #f4f4f5; overflow-x: hidden; }
+button, a, input, textarea { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid #FFD700; outline-offset: 3px; }
+#main-content > section:not(#home) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+}
+.skip-link { position: fixed; left: 1rem; top: -5rem; z-index: 200; background: #FFD700; color: #09090b; padding: 0.75rem 1rem; font-weight: 700; transition: top 0.2s ease; }
+.skip-link:focus { top: 1rem; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #09090b; border-left: 1px solid #27272a; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 0px; }
+::-webkit-scrollbar-thumb:hover { background: #FFD700; }
+
+.glow-hover { transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease; }
+.glow-hover:hover { border-color: #FFD700; }
+
+.fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+.tech-border { position: relative; }
+.tech-border::before { content: ''; position: absolute; top: 0; left: 0; width: 30px; height: 30px; border-top: 2px solid #FFD700; border-left: 2px solid #FFD700; pointer-events: none; }
+.tech-border::after { content: ''; position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-bottom: 2px solid #FFD700; border-right: 2px solid #FFD700; pointer-events: none; }
+
+/* Admin Mode Classes */
+.admin-only { display: none !important; }
+.admin-mode-active .admin-only { display: flex !important; }
+.admin-mode-active .admin-only-block { display: block !important; }
+
+/* Lightbox Animations */
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.lightbox-anim { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.slide-btn { background: rgba(0,0,0,0.5); color: #fff; transition: all 0.2s; border: 1px solid #27272a; }
+.slide-btn:hover { background: #FFD700; color: #09090b; border-color: #FFD700; }
+
+/* Image crossfade transition */
+#hero-img { transition: opacity 0.5s ease-in-out; }
