@@ -221,6 +221,53 @@ function navigateGallery(event, direction) {
 }
 
 // --- ЛОГИКА АДМИН-РЕЖИМА (Ctrl + Shift + R) --- //
+let adminStudioLoadPromise = null;
+
+function ensureAdminStudioLoaded() {
+    if (window.AdminStudio) return Promise.resolve(window.AdminStudio);
+    if (adminStudioLoadPromise) return adminStudioLoadPromise;
+
+    adminStudioLoadPromise = new Promise((resolve, reject) => {
+        if (!document.querySelector('link[data-admin-studio-style]')) {
+            const stylesheet = document.createElement('link');
+            stylesheet.rel = 'stylesheet';
+            stylesheet.href = 'css/admin-studio.css';
+            stylesheet.dataset.adminStudioStyle = 'true';
+            document.head.appendChild(stylesheet);
+        }
+
+        const script = document.createElement('script');
+        script.src = 'js/admin/admin-studio.js';
+        script.dataset.adminStudioScript = 'true';
+        script.onload = () => {
+            if (!window.AdminStudio) {
+                reject(new Error('Admin Studio wurde nicht initialisiert.'));
+                return;
+            }
+            resolve(window.AdminStudio);
+        };
+        script.onerror = () => reject(new Error('Admin Studio konnte nicht geladen werden.'));
+        document.body.appendChild(script);
+    }).catch(error => {
+        adminStudioLoadPromise = null;
+        console.error(error);
+        showToast(error.message || 'Admin Studio konnte nicht geladen werden.', 'error');
+        throw error;
+    });
+
+    return adminStudioLoadPromise;
+}
+
+function openAdminStudio(sectionId = 'about', options = {}) {
+    if (!isAdmin) {
+        showToast('Aktiviere zuerst den Admin Mode mit Ctrl + Shift + R.', 'error');
+        return;
+    }
+    ensureAdminStudioLoaded()
+        .then(studio => studio.open(sectionId, options))
+        .catch(() => {});
+}
+
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'r') {
         e.preventDefault();
@@ -239,15 +286,26 @@ function toggleAdminMode() {
         body.classList.add('admin-mode-active');
         adminBar.classList.remove('hidden');
         mainNav.classList.add('mt-10');
+        ensureAdminStudioLoaded()
+            .then(studio => studio.setAdminMode(isAdmin))
+            .catch(() => {});
     } else {
         body.classList.remove('admin-mode-active');
         adminBar.classList.add('hidden');
         mainNav.classList.remove('mt-10');
+        window.AdminStudio?.setAdminMode(false);
     }
+    if (typeof renderBooks === 'function') renderBooks();
+    if (typeof renderDocuments === 'function') renderDocuments();
+    if (typeof renderBlog === 'function') renderBlog();
     showToast(isAdmin ? 'Administrator-Modus aktiviert.' : 'Administrator-Modus beendet.', 'success');
 }
 
 function exportDataToJson() {
+    if (window.AdminStudio?.hasUnsavedChanges?.()) {
+        showToast('Bitte speichere oder verwirf zuerst die Änderungen im Admin Studio.', 'error');
+        return;
+    }
     const dataStr = JSON.stringify(state.data, null, 4);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);

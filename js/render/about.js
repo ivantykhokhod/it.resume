@@ -37,13 +37,8 @@ function getSafeAboutUrl(value) {
 
 function getAboutOrderedFacts(about) {
     const defaults = getDefaultAboutData().facts;
-    const labels = ['Standort', 'Sprachen', 'Technologien', 'Verfügbarkeit'];
-
-    return labels.map(label => {
-        const current = findFactItem(about?.facts, label);
-        const fallback = findFactItem(defaults, label) || { icon: 'info', label, value: '' };
-        return { ...cloneData(fallback), ...(current ? cloneData(current) : {}) };
-    });
+    const source = Array.isArray(about?.facts) ? about.facts : defaults;
+    return source.filter(item => item && typeof item === 'object').map(item => cloneData(item));
 }
 
 function getPinnedAboutItems(items, fallbackItems, limit = 4) {
@@ -53,23 +48,12 @@ function getPinnedAboutItems(items, fallbackItems, limit = 4) {
     return source.slice(0, limit).map(item => cloneData(item));
 }
 
-const ABOUT_FOCUS_SLIDES = [
-    {
-        icon: 'cpu',
-        title: 'Aktueller Fokus',
-        text: 'KI, Automatisierung & digitale Produkte'
-    },
-    {
-        icon: 'workflow',
-        title: 'Meine Arbeitsweise',
-        text: 'Verstehen → planen → umsetzen → verbessern'
-    },
-    {
-        icon: 'brain',
-        title: 'Meine Interessen',
-        text: 'Effiziente Lernmethoden, Planungssysteme & Neurologie'
-    }
-];
+function getAboutFocusSlides() {
+    const slides = state.data.about?.focusSlides;
+    return Array.isArray(slides) && slides.length
+        ? slides
+        : getDefaultAboutData().focusSlides;
+}
 
 let aboutFocusSlideIndex = 0;
 let aboutFocusTimer = null;
@@ -81,12 +65,19 @@ function renderAboutFocusSlide(index, animate = true) {
     const icon = document.getElementById('about-focus-hero-icon');
     const titleEl = document.getElementById('about-focus-title');
     const textEl = document.getElementById('about-focus-text');
-    const dots = [...document.querySelectorAll('#about-focus-dots button')];
-    if (!root || !slide || !icon || !titleEl || !textEl) return;
+    const dotsRoot = document.getElementById('about-focus-dots');
+    if (!root || !slide || !icon || !titleEl || !textEl || !dotsRoot) return;
 
-    const total = ABOUT_FOCUS_SLIDES.length;
+    const focusSlides = getAboutFocusSlides();
+    const total = focusSlides.length;
     const safeIndex = ((Number(index) || 0) % total + total) % total;
-    const next = ABOUT_FOCUS_SLIDES[safeIndex];
+    const next = focusSlides[safeIndex];
+    if (dotsRoot.children.length !== total) {
+        dotsRoot.innerHTML = focusSlides.map((_, dotIndex) => `
+            <button type="button" onclick="setAboutFocusSlide(${dotIndex}, true);" aria-label="Fokus ${dotIndex + 1} anzeigen"></button>
+        `).join('');
+    }
+    const dots = [...dotsRoot.querySelectorAll('button')];
     const applyContent = () => {
         aboutFocusSlideIndex = safeIndex;
         titleEl.textContent = next.title;
@@ -166,25 +157,51 @@ function initializeAboutFocusSlider() {
     startAboutFocusAutoplay();
 }
 
-const aboutContactInfo = {
-    phonePrimary: '+49 174 206 2137',
-    whatsapp: '+380 68 019 5206',
-    emailPrimary: 'ivantykhokhod@gmail.com',
-    emailSecondary: 'ivansredmi12@gmail.com',
-    telegram: '@visualisierer',
-    instagram: '@ivan.tykhokhod',
-    links: {
-        phone: 'tel:+491742062137',
-        whatsapp: 'https://wa.me/380680195206',
-        emailPrimary: 'mailto:ivantykhokhod@gmail.com',
-        emailSecondary: 'mailto:ivansredmi12@gmail.com',
-        telegram: 'https://t.me/visualisierer',
-        instagram: 'https://www.instagram.com/ivan.tykhokhod'
-    }
-};
+function setAboutElementText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = String(value || '');
+}
 
-function getAboutFactModalType(label) {
-    const normalized = normalizeFactLabel(label);
+function applyAboutContentSettings(about) {
+    const content = about?.content || getDefaultAboutData().content;
+    setAboutElementText('about-section-title', content.sectionTitle);
+    setAboutElementText('about-profile-title', content.profileTitle);
+    setAboutElementText('about-more-button-label', content.moreButtonLabel);
+    setAboutElementText('about-focus-label', content.focusLabel);
+    setAboutElementText('about-facts-title', content.factsTitle);
+    setAboutElementText('about-principles-title', content.principlesTitle);
+    setAboutElementText('about-principles-button-label', content.principlesButtonLabel);
+    setAboutElementText('about-skills-title', content.skillsTitle);
+    setAboutElementText('about-skills-button-label', content.skillsButtonLabel);
+
+    const focusSlider = document.getElementById('about-focus-slider');
+    if (focusSlider) focusSlider.setAttribute('aria-label', content.focusLabel || 'Mein Fokus');
+}
+
+function applyAboutLayoutSettings(about) {
+    const section = document.getElementById('about');
+    if (!section) return;
+    const layout = normalizeAboutLayout(about?.layout, getDefaultAboutData().layout);
+    const values = {
+        '--about-section-padding': `${layout.sectionPadding}px`,
+        '--about-shell-width': `${layout.shellWidth}vw`,
+        '--about-shell-max-width': `${layout.shellMaxWidth}px`,
+        '--about-frame-padding': `${layout.framePadding}px`,
+        '--about-content-inset': `${layout.contentInset}px`,
+        '--about-profile-width': `${layout.profileWidth}%`,
+        '--about-main-gap': `${layout.mainGap}px`,
+        '--about-panel-padding': `${layout.panelPadding}px`,
+        '--about-principle-min-height': `${layout.principleMinHeight}px`,
+        '--about-skill-min-height': `${layout.skillMinHeight}px`
+    };
+    Object.entries(values).forEach(([property, value]) => section.style.setProperty(property, value));
+}
+
+function getAboutFactModalType(fact) {
+    const explicitAction = typeof fact === 'object' ? String(fact?.action || '') : '';
+    if (explicitAction === 'location') return 'standort';
+    if (explicitAction === 'contact') return 'availability';
+    const normalized = normalizeFactLabel(typeof fact === 'object' ? fact?.label : fact);
     if (normalized === 'standort') return 'standort';
     if (normalized === 'verfügbarkeit') return 'availability';
     return '';
@@ -207,10 +224,14 @@ function renderAboutFactModalShell(title, bodyHtml) {
 }
 
 function renderLocationModal() {
-    const locationText = 'Kehl 77694, Baden-Württemberg, Deutschland';
-    const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=Kehl%2077694%20Baden-W%C3%BCrttemberg%20Deutschland';
+    state.data.about = migrateAboutData(state.data.about);
+    const about = state.data.about;
+    const content = about.content || getDefaultAboutData().content;
+    const locationFact = about.facts.find(fact => getAboutFactModalType(fact) === 'standort');
+    const locationText = locationFact?.value || findFactValue('Standort', about);
+    const mapsUrl = getSafeLinkUrl(about.contact?.mapUrl);
 
-    return renderAboutFactModalShell('Standort', `
+    return renderAboutFactModalShell(content.locationTitle, `
         <p class="about-fact-modal-lead">${escapeHtml(locationText)}</p>
         <div class="about-location-map" aria-label="Stilisierte Karte von Kehl">
             <div class="about-location-rhein" aria-hidden="true"></div>
@@ -222,69 +243,110 @@ function renderLocationModal() {
         </div>
         <a class="about-fact-modal-action" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer">
             <i data-lucide="map"></i>
-            In Google Maps öffnen
+            ${escapeHtml(content.locationActionLabel)}
         </a>
     `);
 }
 
-function renderContactLink(label, value, href, external = false) {
-    const targetAttrs = external ? ' target="_blank" rel="noopener noreferrer"' : '';
+function renderContactLink(label, value, href, icon = 'link') {
+    const safeHref = getSafeLinkUrl(href);
+    const isExternal = /^https?:/i.test(safeHref);
+    const targetAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
     return `
-        <a class="about-contact-link" href="${escapeHtml(href)}"${targetAttrs}>
-            <span>${escapeHtml(label)}</span>
+        <a class="about-contact-link" href="${escapeHtml(safeHref)}"${targetAttrs}>
+            <span><i data-lucide="${escapeHtml(normalizeIconName(icon, 'link'))}"></i>${escapeHtml(label)}</span>
             <strong>${escapeHtml(value)}</strong>
         </a>
     `;
 }
 
-function renderQrPlaceholder(service, icon, value) {
+function renderQrContactCard(social, hint) {
+    const isPlaceholder = social?.isPlaceholder === true;
+    const qrImage = getSafeImageUrl(social?.qrImage);
+    const safeHref = getSafeLinkUrl(social?.url);
+    const isInteractive = !isPlaceholder && safeHref !== '#';
+    const isExternal = /^https?:/i.test(safeHref);
+    const qrVisual = isPlaceholder
+        ? '<i data-lucide="plus" aria-hidden="true"></i>'
+        : qrImage
+        ? `<img src="${escapeHtml(qrImage)}" alt="QR-Code für ${escapeHtml(social.platform || 'Plattform')}" loading="lazy" decoding="async">`
+        : `<i data-lucide="qr-code" aria-hidden="true"></i><small>${escapeHtml(hint)}</small>`;
+    const openingTag = isInteractive
+        ? `<a class="about-qr-contact-card" href="${escapeHtml(safeHref)}"${isExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}>`
+        : `<div class="about-qr-contact-card${isPlaceholder ? ' is-placeholder' : ''}">`;
+    const closingTag = isInteractive ? '</a>' : '</div>';
+
     return `
-        <div class="about-qr-placeholder-card">
-            <div class="about-qr-placeholder-box"><span>QR</span></div>
-            <div class="about-qr-placeholder-service"><i data-lucide="${escapeHtml(icon)}" class="w-4 h-4"></i>${escapeHtml(service)}</div>
-            <div class="about-qr-placeholder-value">${escapeHtml(value)}</div>
-            <div class="about-qr-placeholder-hint">QR-Code später hinzufügen</div>
-        </div>
+        ${openingTag}
+            <div class="about-qr-contact-box">${qrVisual}</div>
+            <div class="about-qr-contact-service"><i data-lucide="${escapeHtml(normalizeIconName(social?.icon, isPlaceholder ? 'plus' : 'link'))}"></i><span>${escapeHtml(social?.platform || 'Plattform')}</span></div>
+            ${social?.value ? `<div class="about-qr-contact-value">${escapeHtml(social.value)}</div>` : ''}
+        ${closingTag}
+    `;
+}
+
+function renderCompactSocialLink(social) {
+    const safeHref = getSafeLinkUrl(social?.url);
+    const isExternal = /^https?:/i.test(safeHref);
+    const targetAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return `
+        <a class="about-contact-social-chip" href="${escapeHtml(safeHref)}"${targetAttrs}>
+            <i data-lucide="${escapeHtml(normalizeIconName(social?.icon, 'link'))}"></i>
+            <span>${escapeHtml(social?.platform || 'Plattform')}</span>
+        </a>
     `;
 }
 
 function renderAvailabilityModal() {
-    const contact = aboutContactInfo;
+    state.data.about = migrateAboutData(state.data.about);
+    const about = state.data.about;
+    const content = about.content || getDefaultAboutData().content;
+    const contact = about.contact || getDefaultAboutData().contact;
+    const direct = Array.isArray(contact.direct) ? contact.direct : [];
+    const socials = Array.isArray(contact.socials) ? contact.socials : [];
+    const directHtml = direct.length
+        ? direct.map(item => renderContactLink(item.label, item.value, item.url, item.icon)).join('')
+        : '<p class="about-contact-empty">Noch kein Direktkontakt hinterlegt.</p>';
+    const leftQrItems = socials.filter(item => item.qrSide === 'left').slice(0, 2);
+    const rightQrItems = socials.filter(item => item.qrSide === 'right').slice(0, 2);
+    const extraSocials = socials.filter(item => item.isPlaceholder !== true && item.qrSide === 'none');
+    const leftQrHtml = leftQrItems.map(item => renderQrContactCard(item, content.qrPlaceholderHint)).join('');
+    const rightQrHtml = rightQrItems.map(item => renderQrContactCard(item, content.qrPlaceholderHint)).join('');
+    const extraSocialsHtml = extraSocials.map(renderCompactSocialLink).join('');
+    const noteHtml = escapeHtml(contact.note || '').replace(/\n/g, '<br>');
+    const layoutClasses = [
+        'about-contact-compact',
+        leftQrHtml ? '' : 'without-left-qr',
+        rightQrHtml ? '' : 'without-right-qr',
+        !leftQrHtml && !rightQrHtml ? 'without-qr' : ''
+    ].filter(Boolean).join(' ');
 
-    return renderAboutFactModalShell('Kontakt & Verfügbarkeit', `
-        <div class="about-contact-layout">
-            <div class="about-contact-main">
-                <div class="about-contact-grid">
-                    <section class="about-contact-card">
-                        <h4>Direktkontakt</h4>
-                        <div class="about-contact-list">
-                            ${renderContactLink('Telefon', contact.phonePrimary, contact.links.phone)}
-                            ${renderContactLink('E-Mail', contact.emailPrimary, contact.links.emailPrimary)}
-                            ${renderContactLink('Alternative E-Mail', contact.emailSecondary, contact.links.emailSecondary)}
-                        </div>
-                    </section>
-                    <section class="about-contact-card">
-                        <h4>Messenger / Social</h4>
-                        <div class="about-contact-list">
-                            ${renderContactLink('Telegram', contact.telegram, contact.links.telegram, true)}
-                            ${renderContactLink('WhatsApp', contact.whatsapp, contact.links.whatsapp, true)}
-                            ${renderContactLink('Instagram', contact.instagram, contact.links.instagram, true)}
-                        </div>
-                    </section>
-                </div>
-                <section class="about-contact-note">
-                    <h4>Erreichbarkeit</h4>
-                    <p>Per E-Mail kann ich oft schneller antworten.<br>Auf Telegram bin ich in der Regel am besten erreichbar.<br>Instagram prüfe ich nicht so häufig.</p>
+    return renderAboutFactModalShell(content.availabilityTitle, `
+        <div class="${layoutClasses}">
+            ${leftQrHtml ? `
+                <section class="about-contact-qr-group is-left" aria-label="Linke QR-Kontakte">
+                    <div class="about-contact-qr-grid">${leftQrHtml}</div>
                 </section>
-            </div>
-            <aside class="about-contact-qr-side">
-                <h4 class="about-contact-qr-title">QR / Schnellzugriff</h4>
-                <div class="about-qr-placeholder-grid is-side">
-                    ${renderQrPlaceholder('Telegram', 'send', contact.telegram)}
-                    ${renderQrPlaceholder('Instagram', 'instagram', contact.instagram)}
-                    ${renderQrPlaceholder('WhatsApp', 'message-circle', contact.whatsapp)}
+            ` : ''}
+            <section class="about-contact-summary">
+                <h4>${escapeHtml(content.directContactTitle)}</h4>
+                <div class="about-contact-list">
+                    ${directHtml}
                 </div>
-            </aside>
+                ${extraSocialsHtml ? `<div class="about-contact-social-chips">${extraSocialsHtml}</div>` : ''}
+                <div class="about-contact-note">
+                    <i data-lucide="clock-3" aria-hidden="true"></i>
+                    <div>
+                        <h5>${escapeHtml(content.contactNoteTitle)}</h5>
+                        <p>${noteHtml}</p>
+                    </div>
+                </div>
+            </section>
+            ${rightQrHtml ? `
+                <section class="about-contact-qr-group is-right" aria-label="Rechte QR-Kontakte">
+                    <div class="about-contact-qr-grid">${rightQrHtml}</div>
+                </section>
+            ` : ''}
         </div>
     `);
 }
@@ -303,7 +365,7 @@ function openAboutFactModal(type) {
 
 function renderAboutFacts(about) {
     return getAboutOrderedFacts(about).map(fact => {
-        const modalType = getAboutFactModalType(fact.label);
+        const modalType = getAboutFactModalType(fact);
         const isClickable = modalType !== '';
         const safeIcon = escapeHtml(fact.icon || 'info');
         const safeLabel = escapeHtml(fact.label || '');
@@ -382,6 +444,9 @@ function renderAboutProgressSegments(level) {
 function getCuratedHomeSkills(about) {
     const defaults = getDefaultAboutData().skills;
     const source = Array.isArray(about?.skills) ? about.skills : defaults;
+    const requestedIds = Array.isArray(about?.homepageSkillIds)
+        ? about.homepageSkillIds
+        : ABOUT_HOME_SKILL_IDS;
     const sourceById = new Map();
     const fallbackById = new Map(defaults.map(item => [String(item.id), item]));
 
@@ -391,7 +456,7 @@ function getCuratedHomeSkills(about) {
         }
     });
 
-    return ABOUT_HOME_SKILL_IDS
+    return requestedIds
         .map(id => sourceById.get(id) || fallbackById.get(id))
         .filter(Boolean);
 }
@@ -428,6 +493,9 @@ const ABOUT_HOME_PRINCIPLE_IDS = [
 function getCuratedHomePrinciples(about) {
     const defaults = getDefaultAboutData().principles;
     const source = Array.isArray(about?.principles) ? about.principles : defaults;
+    const requestedIds = Array.isArray(about?.homepagePrincipleIds)
+        ? about.homepagePrincipleIds
+        : ABOUT_HOME_PRINCIPLE_IDS;
     const sourceById = new Map();
     const fallbackById = new Map(defaults.map(item => [String(item.id), item]));
 
@@ -437,7 +505,7 @@ function getCuratedHomePrinciples(about) {
         }
     });
 
-    return ABOUT_HOME_PRINCIPLE_IDS
+    return requestedIds
         .map(id => sourceById.get(id) || fallbackById.get(id))
         .filter(Boolean);
 }
@@ -554,10 +622,11 @@ function renderSkillEvidence(evidence) {
 
 function renderAboutItemFocus(type, item) {
     const isPrinciples = type === 'principles';
+    const content = state.data.about?.content || getDefaultAboutData().content;
     const safeIcon = escapeHtml(item?.icon || (isPrinciples ? 'sparkles' : 'code'));
     const safeTitle = escapeHtml(item?.title || (isPrinciples ? 'Wert' : 'Fähigkeit'));
     const safeDesc = escapeHtml(item?.desc || 'Keine Beschreibung vorhanden.');
-    const backLabel = isPrinciples ? 'Alle Werte & Prinzipien' : 'Alle Fähigkeiten';
+    const backLabel = isPrinciples ? content.principlesDrawerTitle : content.skillsDrawerTitle;
     const backIcon = isPrinciples ? 'grid-3x3' : 'layout-grid';
     const progressHtml = !isPrinciples ? `
         <div class="about-cyber-progress" aria-hidden="true">
@@ -673,7 +742,9 @@ function closeAboutPrincipleFocus(preserveBodyLock = false) {
 function openAboutCollectionModal(type) {
     const isPrinciples = type === 'principles';
     const safeType = isPrinciples ? 'principles' : 'skills';
-    const title = isPrinciples ? 'Werte & Prinzipien' : 'Alle Fähigkeiten';
+    state.data.about = migrateAboutData(state.data.about);
+    const content = state.data.about.content || getDefaultAboutData().content;
+    const title = isPrinciples ? content.principlesDrawerTitle : content.skillsDrawerTitle;
     const titleId = `about-${safeType}-drawer-title`;
 
     openAboutSideDrawer({

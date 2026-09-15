@@ -1,0 +1,846 @@
+/*
+ * Shared layout geometry.
+ * This file is intentionally loaded last: the section styles keep their own
+ * visual language while widths, spacing and responsive transitions follow one
+ * predictable system.
+ */
+
+:root {
+    --gx-nav-height: 4rem;
+    --gx-content-max: 80rem;
+    --gx-wide-max: 96rem;
+    --gx-page-gutter: clamp(1rem, 3vw, 2rem);
+    --gx-section-space: clamp(4rem, 7vh, 5.5rem);
+    --gx-section-space-compact: clamp(3.5rem, 6vh, 4.75rem);
+    --gx-section-title: clamp(2.4rem, 3.1vw, 3.25rem);
+}
+
+html {
+    scroll-padding-top: var(--gx-nav-height);
+}
+
+#main-content > section {
+    scroll-margin-top: var(--gx-nav-height);
+}
+
+/* Realistic off-screen reservations prevent small anchor and scrollbar jumps. */
+#about,
+#education,
+#projects {
+    contain-intrinsic-size: auto 63rem;
+}
+
+#books {
+    contain-intrinsic-size: auto 47rem;
+}
+
+#documents {
+    contain-intrinsic-size: auto 38rem;
+}
+
+#blog {
+    contain-intrinsic-size: auto 55rem;
+}
+
+/* Startseite */
+.home-section {
+    width: min(100%, var(--gx-content-max));
+    min-height: calc(100vh - var(--gx-nav-height));
+    min-height: calc(100svh - var(--gx-nav-height));
+    margin-inline: auto;
+    padding: clamp(3rem, 6vh, 5rem) var(--gx-page-gutter);
+    box-sizing: border-box;
+}
+
+.hero-photo-frame {
+    width: clamp(18rem, 21vw, 22rem) !important;
+    max-width: 100%;
+    height: auto !important;
+    aspect-ratio: 1;
+}
+
+#hero-buttons-container {
+    gap: 0.75rem;
+}
+
+#hero-buttons-container > a {
+    padding-inline: clamp(1.2rem, 1.7vw, 2rem);
+}
+
+/* Shared title scale. The hero remains the intentional exception. */
+.about-v119 .about-cyber-title,
+.education-rebuild-title,
+.projects-heading h2,
+.library-heading h2,
+.documents-title-group h2 {
+    font-size: var(--gx-section-title);
+}
+
+/* Über mich: wide working canvas, stable content-driven cards. */
+.about-cyber-section {
+    min-height: calc(100vh - var(--gx-nav-height));
+    min-height: calc(100svh - var(--gx-nav-height));
+    display: flex;
+    align-items: flex-start;
+    padding-top: var(--gx-section-space-compact) !important;
+    padding-bottom: var(--gx-section-space-compact) !important;
+}
+
+.about-cyber-section .about-cyber-shell {
+    width: min(calc(100% - var(--gx-page-gutter) - var(--gx-page-gutter)), var(--gx-wide-max));
+    max-width: var(--gx-wide-max);
+    margin-inline: auto;
+    padding-inline: 0;
+}
+
+.about-cyber-frame.about-v119 {
+    width: 100%;
+    min-height: 0;
+    padding: clamp(1rem, 1.4vw, 1.5rem);
+}
+
+.about-v119 .about-cyber-head {
+    margin-bottom: clamp(0.8rem, 1.2vh, 1.05rem);
+}
+
+.about-v119-main,
+.about-v119-details {
+    gap: clamp(0.65rem, 0.9vw, 0.9rem);
+}
+
+.about-v119-profile {
+    padding: clamp(1rem, 1.2vw, 1.35rem);
+}
+
+.about-v119-profile-copy {
+    margin-top: clamp(0.65rem, 1vh, 0.9rem);
+}
+
+.about-v119-intro {
+    margin-top: 0.6rem;
+    line-height: 1.6;
+}
+
+.about-v119-more {
+    margin-top: 0.6rem;
+}
+
+.about-v119-focus {
+    min-height: 7rem;
+    padding-top: 0.75rem;
+}
+
+.about-v119-focus-slide {
+    height: 4.5rem;
+    min-height: 4.5rem;
+    padding-top: 0.45rem;
+}
+
+.about-v119 .about-v119-panel {
+    padding: clamp(0.85rem, 1vw, 1.1rem);
+}
+
+.about-v119 .about-cyber-panel-head {
+    margin-bottom: 0.65rem;
+}
+
+.about-v119 .about-cyber-fact {
+    min-height: 3.55rem;
+    padding: 0.5rem 0.65rem;
+}
+
+.about-v119 .about-cyber-principle {
+    min-height: 2.65rem;
+    padding: 0.48rem 0.58rem;
+}
+
+.about-v119-skills {
+    min-height: 11rem;
+    margin-top: clamp(0.65rem, 0.9vw, 0.9rem);
+    padding: clamp(0.75rem, 0.95vw, 0.95rem);
+}
+
+.about-v119 .about-cyber-skill {
+    min-height: 6.75rem;
+    height: auto;
+    padding: 0.68rem;
+}
+
+.about-v119 .about-cyber-progress {
+    margin-top: 0.5rem;
+}
+
+.about-v119 .about-cyber-level {
+    margin-top: 0.35rem;
+}
+
+/* Bildung: standard heading line with one controlled wide timeline canvas. */
+.education-section {
+    min-height: calc(100vh - var(--gx-nav-height));
+    min-height: calc(100svh - var(--gx-nav-height));
+    align-items: flex-start;
+    padding: var(--gx-section-space) var(--gx-page-gutter);
+    padding-top: var(--gx-section-space) !important;
+    padding-bottom: var(--gx-section-space) !important;
+}
+
+.education-rebuild-head {
+    width: min(100%, var(--gx-content-max));
+    margin-bottom: clamp(2rem, 4vh, 3rem);
+}
+
+.education-timeline-container {
+    width: min(100%, var(--gx-wide-max));
+}
+
+/* Projekte: compact wide canvas instead of fixed oversized columns. */
+.projects-section {
+    min-height: calc(100vh - var(--gx-nav-height));
+    min-height: calc(100svh - var(--gx-nav-height));
+    padding: var(--gx-section-space-compact) var(--gx-page-gutter);
+}
+
+.projects-shell {
+    width: min(100%, var(--gx-wide-max));
+}
+
+.projects-heading {
+    width: min(100%, var(--gx-content-max));
+    margin-inline: auto;
+    margin-bottom: clamp(2rem, 4vh, 3rem);
+}
+
+.projects-heading-line {
+    margin-bottom: 0;
+}
+
+.projects-workbench {
+    grid-template-columns: minmax(18rem, var(--project-sidebar-width, 21.5rem)) minmax(0, 1fr);
+    gap: clamp(2rem, 3vw, 3rem);
+}
+
+.project-showcase-detail {
+    grid-column: 2;
+}
+
+.projects-sidebar {
+    padding-top: 0.5rem;
+}
+
+.projects-picker {
+    gap: 0.75rem;
+}
+
+.project-picker-button {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: 0.8rem;
+    min-height: var(--project-picker-min-height, 6.5rem);
+    padding: 0.85rem 4.15rem 0.85rem 0.9rem;
+}
+
+.project-picker-icon {
+    width: 3rem;
+    height: 3rem;
+}
+
+.projects-all-toggle {
+    min-height: 3.75rem;
+    margin-top: 0.75rem;
+}
+
+.nivora-showcase,
+.idea-showcase {
+    grid-template-columns: minmax(18.5rem, 20rem) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 4rem;
+    gap: 1.25rem clamp(2rem, 3vw, 3.25rem);
+    min-height: 38.5rem;
+}
+
+.nivora-phone-stage,
+.idea-stage {
+    min-height: 38rem;
+}
+
+.nivora-phone {
+    width: clamp(18.5rem, 20vw, 20rem);
+}
+
+.nivora-phone-stage::before,
+.idea-stage::before {
+    width: 26rem;
+    height: 26rem;
+}
+
+.nivora-feature-copy,
+.resume-feature-copy {
+    min-height: 17.5rem;
+    padding: clamp(1.65rem, 2.4vw, 2.15rem);
+}
+
+.nivora-showcase-tabs,
+.resume-showcase-tabs {
+    min-height: 4rem;
+}
+
+.resume-showcase {
+    grid-template-columns: minmax(26rem, 1.05fr) minmax(23rem, 0.95fr);
+    grid-template-rows: minmax(0, 1fr) 4rem;
+    gap: 1.25rem clamp(1.75rem, 2.4vw, 2.5rem);
+    min-height: 38.5rem;
+}
+
+.resume-showcase.idea-showcase {
+    grid-template-columns: minmax(18.5rem, 20rem) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 4rem;
+    gap: 1.25rem clamp(2rem, 3vw, 3.25rem);
+}
+
+.resume-monitor-stage {
+    min-height: 38rem;
+}
+
+.resume-monitor {
+    width: min(100%, 33rem);
+}
+
+.resume-monitor-stage::before {
+    width: 30rem;
+    height: 22rem;
+}
+
+.project-generic-layout {
+    min-height: 38rem;
+    grid-template-columns: minmax(17rem, 0.88fr) minmax(22rem, 1.12fr);
+    grid-template-rows: auto minmax(23rem, 1fr);
+}
+
+.project-generic-visual {
+    min-height: 33rem;
+}
+
+/* Bibliothek, Dokumente and Blog share the normal reading width and rhythm. */
+.library-section,
+.documents-section,
+.blog-section {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding: var(--gx-section-space-compact) var(--gx-page-gutter);
+}
+
+.library-shell,
+.documents-shell,
+.blog-shell {
+    width: min(100%, var(--gx-content-max));
+    max-width: var(--gx-content-max);
+    margin-inline: auto;
+}
+
+.library-heading,
+.documents-heading {
+    margin-bottom: clamp(1.5rem, 2.5vh, 2rem);
+}
+
+.library-heading,
+.library-subheading,
+.library-stream-heading {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+/* Drawer widths follow the same three layout tiers as their parent sections. */
+.library-drawer-panel,
+.documents-drawer-panel,
+.blog-drawer-panel {
+    width: min(94vw, var(--gx-content-max));
+}
+
+.blog-post-panel {
+    width: min(96vw, 72rem);
+}
+
+#global-modal.about-drawer-open > #modal-container.about-side-drawer {
+    width: min(92vw, var(--gx-wide-max)) !important;
+}
+
+/* A little more room in the document workstation, without returning to the old tall design. */
+@media (min-width: 901px) {
+    .document-tab-main {
+        min-height: 8.65rem;
+    }
+
+    .document-active-panel,
+    .document-empty {
+        min-height: 18rem;
+    }
+
+    .document-scanner {
+        height: 14.6rem;
+    }
+}
+
+/* Blog */
+.blog-title-group h2 {
+    margin: 0;
+    color: #ffd700;
+    font-size: clamp(2.75rem, 4vw, 3.5rem);
+    line-height: 0.96;
+}
+
+.blog-heading {
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.blog-heading-line {
+    margin-bottom: 0;
+}
+
+.blog-featured,
+.blog-theme-panel {
+    min-height: 26rem;
+}
+
+.site-footer {
+    margin-top: 0;
+}
+
+@media (min-width: 1281px) {
+    .home-layout {
+        grid-template-columns: minmax(0, 1.08fr) minmax(18rem, 0.92fr);
+        gap: clamp(2.5rem, 4vw, 4rem);
+    }
+
+    .education-timeline-scroll {
+        padding: 3rem 0 1rem;
+    }
+
+    .education-timeline-track {
+        height: var(--education-track-height, 27.5rem);
+    }
+
+    .education-card {
+        width: min(var(--education-card-width, 9.5rem), calc(100% - 0.75rem));
+        min-height: var(--education-card-height, 10.75rem);
+    }
+
+    .education-goal-marker {
+        width: 100%;
+        min-height: var(--education-card-height, 10.75rem);
+    }
+}
+
+@media (min-width: 901px) {
+    .about-cyber-section .about-cyber-shell {
+        align-self: auto;
+        display: block;
+    }
+
+    .about-cyber-frame.about-v119 {
+        display: block;
+    }
+
+    .about-v119-main {
+        min-height: 0;
+        flex: none;
+        grid-template-rows: auto;
+    }
+
+    .about-v119-profile,
+    .about-v119-panel {
+        height: auto;
+    }
+
+    .about-v119-details {
+        grid-template-rows: auto auto;
+    }
+
+    .about-v119-skills {
+        flex: none;
+    }
+}
+
+/* Medium desktop / tablet: project selector becomes a compact top rail. */
+@media (max-width: 1280px) {
+    .projects-workbench {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .project-showcase-detail {
+        grid-column: 1;
+    }
+
+    .projects-sidebar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+        padding-top: 0;
+    }
+
+    .projects-sidebar.has-project-archive {
+        grid-template-columns: minmax(0, 1fr) 12rem;
+    }
+
+    .projects-picker {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .project-picker-button {
+        min-height: max(6rem, var(--project-picker-min-height, 6rem));
+    }
+
+    .projects-all-toggle {
+        height: 100%;
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 900px) {
+    :root {
+        --gx-section-space: clamp(3.5rem, 7vh, 4.5rem);
+        --gx-section-space-compact: clamp(3.25rem, 6vh, 4rem);
+    }
+
+    .about-cyber-section {
+        min-height: 0;
+        display: block;
+    }
+
+    .about-cyber-section .about-cyber-shell {
+        width: min(calc(100% - var(--gx-page-gutter) - var(--gx-page-gutter)), 47.5rem);
+    }
+
+    .education-section,
+    .projects-section {
+        min-height: 0;
+    }
+
+    .projects-sidebar {
+        display: block;
+    }
+
+    .projects-picker {
+        display: flex;
+        gap: 0.75rem;
+        padding-bottom: 0.5rem;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+    }
+
+    .project-picker-card {
+        flex: 0 0 17rem;
+        scroll-snap-align: start;
+    }
+
+    .projects-all-toggle {
+        min-height: 3.75rem;
+        height: auto;
+        margin-top: 0.5rem;
+    }
+
+    .nivora-showcase,
+    .resume-showcase,
+    .idea-showcase,
+    .project-generic-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        gap: 1rem;
+        min-height: 0;
+    }
+
+    .nivora-phone-stage,
+    .idea-stage,
+    .resume-monitor-stage,
+    .project-generic-visual,
+    .project-detail-meta,
+    .nivora-feature-copy,
+    .resume-feature-copy,
+    .nivora-showcase-tabs,
+    .resume-showcase-tabs,
+    .project-generic-content {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .nivora-phone-stage,
+    .idea-stage,
+    .resume-monitor-stage,
+    .project-generic-visual {
+        min-height: 32rem;
+    }
+
+    .project-generic-layout > .project-detail-meta {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .resume-showcase > .project-detail-meta {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .project-detail-meta {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .project-detail-meta > div {
+        padding: 0.8rem 0 0;
+        border-top: 1px solid rgba(122, 130, 144, 0.22);
+        border-left: 0;
+    }
+
+    .project-detail-meta > div:first-child {
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    .project-detail-meta > div:last-child {
+        padding-right: 0;
+    }
+
+    .nivora-showcase-tabs,
+    .resume-showcase-tabs,
+    .idea-showcase-tabs {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(5rem, 1fr);
+        grid-template-columns: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+    }
+
+    .nivora-showcase-tabs button,
+    .resume-showcase-tabs button,
+    .idea-showcase-tabs button {
+        scroll-snap-align: start;
+    }
+
+    .nivora-feature-copy h4 {
+        font-size: clamp(1.75rem, 7vw, 2.25rem);
+        white-space: normal;
+    }
+
+    .projects-all-drawer {
+        --projects-all-left: 0;
+    }
+
+    .project-insights-layer {
+        --project-insights-left: 0;
+    }
+
+    .resume-structure-layer {
+        --resume-details-left: 0;
+    }
+
+    .blog-featured,
+    .blog-theme-panel {
+        min-height: 0;
+    }
+
+    .blog-drawer-panel,
+    .blog-post-panel {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-section {
+        min-height: 0;
+        padding-top: var(--gx-section-space);
+        padding-bottom: var(--gx-section-space);
+    }
+
+    .home-layout {
+        gap: 2.5rem;
+    }
+
+    .about-cyber-section .about-cyber-shell {
+        width: calc(100% - var(--gx-page-gutter) - var(--gx-page-gutter));
+    }
+
+    .projects-heading h2,
+    .education-rebuild-title,
+    .about-v119 .about-cyber-title,
+    .library-heading h2,
+    .documents-title-group h2 {
+        font-size: clamp(2.15rem, 9vw, 2.7rem);
+    }
+
+    .nivora-phone-stage,
+    .idea-stage,
+    .resume-monitor-stage,
+    .project-generic-visual {
+        min-height: 28rem;
+    }
+
+    .nivora-phone {
+        width: min(18.5rem, 88vw);
+    }
+
+    .library-drawer-panel,
+    .documents-drawer-panel {
+        width: 100%;
+    }
+
+    #global-modal.about-drawer-open > #modal-container.about-side-drawer {
+        width: calc(100vw - 0.75rem) !important;
+    }
+}
+
+@media (max-width: 620px) {
+    :root {
+        --gx-page-gutter: 1rem;
+        --gx-section-space: 3.5rem;
+        --gx-section-space-compact: 3.25rem;
+    }
+
+    .hero-photo-frame {
+        width: min(18rem, calc(100vw - 2rem)) !important;
+    }
+
+    #hero-buttons-container > a {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .about-cyber-frame.about-v119 {
+        padding: 0.85rem;
+    }
+
+    .library-section,
+    .documents-section,
+    .blog-section {
+        padding-right: var(--gx-page-gutter);
+        padding-left: var(--gx-page-gutter);
+    }
+
+    .library-heading,
+    .library-subheading,
+    .library-stream-heading {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    .blog-title-group h2 {
+        font-size: clamp(2.5rem, 14vw, 3rem);
+    }
+
+    .projects-all-panel,
+    .project-insights-drawer,
+    .resume-structure-drawer {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .projects-all-panel > header,
+    .project-insights-head,
+    .resume-structure-head {
+        margin-right: -1rem;
+        margin-left: -1rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-section,
+    .about-cyber-section,
+    .education-section,
+    .projects-section,
+    .library-section,
+    .documents-section,
+    .blog-section {
+        scroll-behavior: auto;
+    }
+}
+
+/* Project detail density is configurable in Admin Studio. */
+#projects .project-insights-grid,
+#projects .idea-insights-grid,
+#projects .resume-structure-grid,
+.project-insights-drawer .project-insights-grid,
+.resume-structure-drawer .resume-structure-grid {
+    gap: var(--project-insight-gap, 0.75rem);
+    align-content: start;
+}
+
+.project-insights-drawer .project-insight-card,
+.project-insights-drawer .nivora-insights-grid .project-insight-card {
+    min-height: var(--project-insight-card-min-height, 8.25rem);
+    padding: 0.95rem;
+}
+
+.project-insights-drawer .project-insight-card small {
+    margin-top: 0.65rem;
+}
+
+.project-insights-drawer .project-insight-card h6 {
+    margin-top: 0.45rem;
+    font-size: 0.98rem;
+}
+
+.project-insights-drawer .project-insight-card p {
+    margin-top: 0.55rem;
+    line-height: 1.5;
+}
+
+.project-insights-drawer .idea-insight-card {
+    grid-template-columns: minmax(9.5rem, 0.78fr) minmax(0, 1.22fr);
+    min-height: max(11.5rem, var(--project-insight-card-min-height, 8.25rem));
+    gap: 0.9rem;
+    padding: 0.8rem;
+}
+
+.project-insights-drawer .idea-insight-card > img {
+    height: 9.5rem;
+    padding: 0.45rem;
+}
+
+.project-insights-drawer .idea-insight-card-wide {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: max(7.5rem, var(--project-insight-card-min-height, 8.25rem));
+    padding: 1rem 1.15rem;
+}
+
+.resume-structure-drawer {
+    overflow-y: auto;
+}
+
+.resume-structure-drawer .resume-structure-grid {
+    flex: 0 0 auto;
+    grid-template-rows: none;
+}
+
+.resume-structure-drawer .resume-structure-card {
+    height: auto;
+    min-height: var(--project-insight-card-min-height, 8.25rem);
+    grid-template-rows: auto auto auto auto;
+    align-content: start;
+}
+
+.resume-structure-drawer .resume-structure-preview {
+    height: clamp(6rem, 12vh, 8rem);
+}
+
+/* Hidden technologies join the existing chip row instead of covering content. */
+#projects .project-tech-disclosure,
+#projects .project-tech-overflow:not([hidden]),
+#projects .project-tech-overflow > span {
+    display: contents;
+}
+
+#projects .project-tech-overflow small {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .project-insights-drawer .idea-insight-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

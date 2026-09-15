@@ -14,22 +14,29 @@
     <link rel="stylesheet" href="css/about.css">
     <link rel="stylesheet" href="css/education.css">
     <link rel="stylesheet" href="css/projects.css">
+    <link rel="stylesheet" href="css/library.css">
+    <link rel="stylesheet" href="css/documents.css">
+    <link rel="stylesheet" href="css/blog.css">
+    <link rel="stylesheet" href="css/layout-system.css">
     <!-- Lucide Icons -->
     <script src="assets/vendor/lucide.min.js"></script>
 </head>
 <body class="font-sans antialiased selection:bg-gx-yellow selection:text-gx-bg relative">
     <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
 
-    <div id="admin-bar" class="fixed top-0 w-full z-[60] bg-gx-yellow text-gx-bg font-bold px-4 py-2 flex justify-between items-center hidden shadow-[0_0_20px_rgba(255,215,0,0.5)]">
-        <div class="flex items-center gap-2">
+    <div id="admin-bar" class="admin-command-bar hidden" role="toolbar" aria-label="Admin Mode">
+        <div class="admin-command-status">
             <i data-lucide="shield-alert" class="w-5 h-5"></i>
-            <span>Administrator-Modus aktiviert</span>
+            <span><strong>Admin Mode</strong><small>Lokale Vorschau</small></span>
         </div>
-        <div class="flex gap-4">
-            <button type="button" onclick="exportDataToJson(); playClickSound();" class="bg-black text-gx-yellow px-4 py-1 flex items-center gap-2 hover:bg-zinc-800 transition-colors border border-black">
-                <i data-lucide="download" class="w-4 h-4"></i> data.json exportieren
+        <div class="admin-command-actions">
+            <button type="button" onclick="openAdminStudio('about'); playClickSound();" class="admin-command-primary">
+                <i data-lucide="panel-right-open" class="w-4 h-4"></i><span>Admin Studio</span>
             </button>
-            <button type="button" onclick="toggleAdminMode(); playClickSound();" aria-label="Administrator-Modus schließen" class="bg-transparent text-gx-bg hover:text-black transition-colors">
+            <button type="button" onclick="exportDataToJson(); playClickSound();" class="admin-command-secondary">
+                <i data-lucide="download" class="w-4 h-4"></i><span>data.json</span>
+            </button>
+            <button type="button" onclick="toggleAdminMode(); playClickSound();" aria-label="Administrator-Modus schließen" class="admin-command-close">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
@@ -77,11 +84,11 @@
 
     <main id="main-content" class="relative z-10 pt-16">
         <!-- Hero Section -->
-        <section id="home" class="min-h-[90vh] flex items-center justify-center px-4 py-20 max-w-7xl mx-auto relative group/hero">
+        <section id="home" class="home-section flex items-center justify-center relative group/hero">
             <button type="button" onclick="openFormModal('profile'); playClickSound();" class="admin-only absolute top-20 right-4 bg-gx-yellow text-gx-bg px-4 py-2 font-bold shadow-lg z-20 gap-2 items-center">
                 <i data-lucide="edit"></i> Startseite bearbeiten
             </button>
-            <div class="grid md:grid-cols-2 gap-12 items-center w-full">
+            <div class="home-layout grid md:grid-cols-2 gap-12 items-center w-full">
                 <div class="fade-up order-2 md:order-1">
                     <div class="inline-block px-3 py-1 mb-6 border border-gx-yellow/30 bg-gx-yellow/10 text-gx-yellow font-mono text-sm rounded-none">
                         > Systemstatus: Online
@@ -111,7 +118,7 @@
 
                 <!-- Hero Photo Box -->
                 <div class="fade-up order-1 md:order-2 flex justify-center md:justify-end">
-                    <div class="relative w-72 h-72 md:w-96 md:h-96 tech-border p-4 bg-gx-card">
+                    <div class="hero-photo-frame relative w-72 h-72 md:w-96 md:h-96 tech-border p-4 bg-gx-card">
                         <img id="hero-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Porträt von Ivan" class="w-full h-full object-cover grayscale hover:grayscale-0 cursor-pointer transition-opacity duration-300" decoding="async" onclick="openPhotoGallery(); playClickSound();">
                         <div class="absolute -bottom-4 -left-4 w-24 h-24 bg-gx-yellow z-[-1] opacity-20 blur-xl"></div>
                     </div>
@@ -126,11 +133,11 @@
                     <div class="about-cyber-head">
                         <div class="about-cyber-alert" aria-hidden="true">!</div>
                         <h2 class="about-cyber-title">
-                            <span>Über mich</span>
+                            <span id="about-section-title">Über mich</span>
                         </h2>
                         <div class="about-cyber-title-line" aria-hidden="true"></div>
-                        <button type="button" onclick="openFormModal('about'); playClickSound();" class="about-cyber-admin-btn admin-only bg-gx-yellow text-gx-bg px-4 py-2 font-bold shadow-lg gap-2 items-center whitespace-nowrap">
-                            <i data-lucide="edit"></i> Bearbeiten
+                        <button type="button" onclick="openAdminStudio('about'); playClickSound();" class="about-cyber-admin-btn admin-only bg-gx-yellow text-gx-bg px-4 py-2 font-bold shadow-lg gap-2 items-center whitespace-nowrap">
+                            <i data-lucide="sliders-horizontal"></i> Admin Studio
                         </button>
                     </div>
 
@@ -145,18 +152,18 @@
                             <div class="about-v119-profile-copy">
                                 <div class="about-v119-subhead">
                                     <i data-lucide="user-round"></i>
-                                    <h3>Kurzprofil</h3>
+                                    <h3 id="about-profile-title">Kurzprofil</h3>
                                 </div>
                                 <p id="about-intro-short" class="about-v119-intro">Laden...</p>
                                 <button type="button" onclick="openAboutMoreModal(); playClickSound();" class="about-v119-more">
-                                    <span>Mehr</span>
+                                    <span id="about-more-button-label">Mehr</span>
                                     <i data-lucide="arrow-right"></i>
                                 </button>
                             </div>
 
                             <div id="about-focus-slider" class="about-v119-focus" aria-label="Mein Fokus" aria-live="polite">
                                 <div class="about-v119-focus-head">
-                                    <span>Mein Fokus</span>
+                                    <span id="about-focus-label">Mein Fokus</span>
                                     <button id="about-focus-next" type="button" onclick="nextAboutFocusSlide(true); playClickSound();" aria-label="Nächsten Fokus anzeigen">
                                         <i data-lucide="arrow-right"></i>
                                     </button>
@@ -165,11 +172,7 @@
                                     <h4 id="about-focus-title">Aktueller Fokus</h4>
                                     <p id="about-focus-text">KI, Automatisierung &amp; digitale Produkte</p>
                                 </div>
-                                <div id="about-focus-dots" class="about-v119-focus-dots" aria-label="Fokus auswählen">
-                                    <button type="button" class="is-active" onclick="setAboutFocusSlide(0, true);" aria-label="Fokus 1 anzeigen" aria-current="true"></button>
-                                    <button type="button" onclick="setAboutFocusSlide(1, true);" aria-label="Fokus 2 anzeigen"></button>
-                                    <button type="button" onclick="setAboutFocusSlide(2, true);" aria-label="Fokus 3 anzeigen"></button>
-                                </div>
+                                <div id="about-focus-dots" class="about-v119-focus-dots" aria-label="Fokus auswählen"></div>
                             </div>
                         </article>
 
@@ -177,7 +180,7 @@
                         <article class="about-cyber-panel about-v119-panel about-cyber-cornered">
                             <div class="about-cyber-panel-head">
                                 <i data-lucide="file-text" class="about-cyber-panel-icon"></i>
-                                <h3>Kurz &amp; wichtig</h3>
+                                <h3 id="about-facts-title">Kurz &amp; wichtig</h3>
                             </div>
                             <div id="about-facts-grid" class="about-cyber-facts-grid">
                                 <!-- Facts populated by JS -->
@@ -187,9 +190,9 @@
                         <article class="about-cyber-panel about-v119-panel about-cyber-cornered">
                             <div class="about-cyber-panel-head">
                                 <i data-lucide="heart" class="about-cyber-panel-icon"></i>
-                                <h3>Werte &amp; Prinzipien</h3>
+                                <h3 id="about-principles-title">Werte &amp; Prinzipien</h3>
                                 <button id="about-collection-btn-principles" type="button" onclick="openAboutCollectionModal('principles'); playClickSound();" class="about-v119-all-skills">
-                                    <span>Alle</span>
+                                    <span id="about-principles-button-label">Alle</span>
                                     <i data-lucide="arrow-right"></i>
                                 </button>
                             </div>
@@ -203,9 +206,9 @@
                     <div class="about-v119-skills about-cyber-cornered">
                         <div class="about-cyber-skills-head">
                             <i data-lucide="zap" class="about-cyber-skills-icon"></i>
-                            <h3>Kernfähigkeiten</h3>
+                            <h3 id="about-skills-title">Kernfähigkeiten</h3>
                             <button id="about-collection-btn-skills" type="button" onclick="openAboutCollectionModal('skills'); playClickSound();" class="about-v119-all-skills">
-                                <span>Alle</span>
+                                <span id="about-skills-button-label">Alle</span>
                                 <i data-lucide="arrow-right"></i>
                             </button>
                         </div>
@@ -221,10 +224,17 @@
         <!-- Education section -->
         <section id="education" class="education-section py-20">
             <div class="fade-up education-rebuild-shell">
-                <div class="education-rebuild-head">
-                    <h2 class="education-rebuild-title">Bildung</h2>
-                    <p class="education-rebuild-subtitle">– Mein Weg – Schritt für Schritt.</p>
-                </div>
+                <header class="education-rebuild-head">
+                    <div class="education-rebuild-title-group">
+                        <h2 id="education-section-title" class="education-rebuild-title">Bildung</h2>
+                        <p id="education-section-subtitle" class="education-rebuild-subtitle">Mein Weg – Schritt für Schritt</p>
+                    </div>
+                    <span class="education-rebuild-heading-line" aria-hidden="true"></span>
+                    <button type="button" onclick="openAdminStudio('education'); playClickSound();" class="education-admin-edit admin-only">
+                        <i data-lucide="settings-2"></i>
+                        <span>Bildung bearbeiten</span>
+                    </button>
+                </header>
                 <div id="education-timeline-container" class="education-timeline-container">
                     <!-- Bildung timeline populated by JS -->
                 </div>
@@ -236,10 +246,11 @@
             <div class="projects-shell fade-up">
                 <header class="projects-heading">
                     <div class="projects-heading-copy">
-                        <h2>Projekte</h2>
+                        <h2 id="projects-heading-title">Projekte</h2>
                     </div>
-                    <button type="button" onclick="openFormModal('project'); playClickSound();" class="projects-admin-add admin-only">
-                        <i data-lucide="plus"></i> Projekt hinzufügen
+                    <span class="projects-heading-line" aria-hidden="true"></span>
+                    <button type="button" onclick="openAdminStudio('projects'); playClickSound();" class="projects-admin-add admin-only">
+                        <i data-lucide="sliders-horizontal"></i> Projekte verwalten
                     </button>
                 </header>
 
@@ -249,7 +260,7 @@
                             <!-- Projects populated by JS -->
                         </div>
                         <button type="button" id="projects-all-toggle" class="projects-all-toggle" aria-controls="projects-all-drawer" aria-expanded="false">
-                            <span><i data-lucide="folder-open" aria-hidden="true"></i>Alle Projekte</span>
+                            <span><i data-lucide="folder-open" aria-hidden="true"></i><span id="projects-all-toggle-label">Alle Projekte</span></span>
                             <i data-lucide="arrow-right" aria-hidden="true"></i>
                         </button>
                     </aside>
@@ -264,7 +275,7 @@
                     <section class="projects-all-panel" role="dialog" aria-modal="true" aria-labelledby="projects-all-title">
                         <header>
                             <div>
-                                <span>Portfolio</span>
+                                <span id="projects-archive-kicker">Portfolio</span>
                                 <h3 id="projects-all-title">Alle Projekte</h3>
                             </div>
                             <button type="button" class="projects-all-close" data-projects-all-close aria-label="Schließen">
@@ -283,89 +294,215 @@
             </div>
         </section>
 
-        <!-- Books Section -->
-        <section id="books" class="py-20 max-w-7xl mx-auto px-4">
-            <div class="fade-up">
-                <div class="flex justify-between items-center mb-12">
-                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
-                        <span class="text-zinc-600">04.</span> Bibliothek
-                        <span class="h-px bg-zinc-800 flex-1 hidden md:block" aria-hidden="true"></span>
-                    </h2>
-                    <button type="button" onclick="openFormModal('book'); playClickSound();" class="admin-only ml-4 px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Buch hinzufügen
+        <!-- Library Section -->
+        <section id="books" class="library-section">
+            <div class="library-shell fade-up">
+                <header class="library-heading">
+                    <div class="library-title-group">
+                        <h2 data-library-text="sectionTitle">Bibliothek</h2>
+                        <p id="library-favorites-title" data-library-text="favoritesTitle">Fünf, die bleiben</p>
+                    </div>
+                    <span class="library-heading-line" aria-hidden="true"></span>
+                    <button type="button" onclick="openLibraryAdmin(); playClickSound();" class="library-admin-add admin-only">
+                        <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+                        <span>Bibliothek bearbeiten</span>
                     </button>
-                </div>
+                </header>
 
-                <div class="grid lg:grid-cols-3 gap-12">
-                    <div class="lg:col-span-1">
-                        <div class="bg-gx-card p-6 border border-zinc-800 tech-border">
-                            <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
-                                <i data-lucide="star" class="text-gx-yellow fill-gx-yellow"></i> Top-5 Favoriten
-                            </h3>
-                            <ul id="top-books-container" class="space-y-4">
-                                <!-- Top books populated by JS -->
-                            </ul>
+                <section class="library-favorites" aria-labelledby="library-favorites-title">
+                    <div class="library-favorites-stage">
+                        <div id="top-books-container" class="library-favorites-grid">
+                            <!-- Five favorite books populated by JS -->
                         </div>
+                        <span class="library-stage-line" aria-hidden="true"></span>
                     </div>
-                    <div class="lg:col-span-2">
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
-                            <i data-lucide="book-open" class="text-zinc-500"></i> Gelesen/Gehört dieses Jahr
-                        </h3>
-                        <div id="books-container" class="grid sm:grid-cols-2 gap-4">
-                            <!-- Books populated by JS -->
-                        </div>
-                        <div class="mt-6 text-center">
-                            <button type="button" id="btn-more-books" onclick="toggleMore('books'); playClickSound();" class="px-6 py-3 border border-zinc-700 text-gx-text hover:border-gx-yellow hover:text-gx-yellow transition-colors font-mono text-sm w-full md:w-auto">
-                                Mehr anzeigen
+                </section>
+
+                <section class="library-stream" aria-labelledby="library-stream-title">
+                    <div class="library-stream-heading">
+                        <h3 id="library-stream-title" data-library-text="streamTitle">Gelesen</h3>
+                        <button type="button" id="library-open-all" class="library-open-all" aria-controls="library-drawer" aria-expanded="false">
+                            <span data-library-text="allBooksLabel">Alle Bücher</span>
+                            <i data-lucide="arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div id="books-container" class="library-marquee" aria-label="Gelesene Bücher. Die Bewegung pausiert beim Darüberfahren.">
+                        <!-- Moving book strip populated by JS -->
+                    </div>
+                </section>
+
+                <div id="library-drawer" class="library-drawer" aria-hidden="true" hidden>
+                    <button type="button" class="library-drawer-backdrop" data-library-close aria-label="Bibliothek schließen"></button>
+                    <section class="library-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="library-drawer-title">
+                        <header class="library-drawer-header">
+                            <button type="button" class="library-icon-button library-drawer-close" data-library-close aria-label="Bibliothek schließen">
+                                <i data-lucide="arrow-left" aria-hidden="true"></i>
                             </button>
+                            <div class="library-drawer-title-group">
+                                <span data-library-text="sectionTitle">Bibliothek</span>
+                                <h3 id="library-drawer-title" data-library-text="archiveTitle">Alle Bücher</h3>
+                            </div>
+                            <div class="library-drawer-actions">
+                                <button type="button" class="library-icon-button admin-only" onclick="openLibraryAdmin({ newBook: true });" aria-label="Buch hinzufügen" title="Buch hinzufügen">
+                                    <i data-lucide="plus" aria-hidden="true"></i>
+                                </button>
+                                <div class="library-search" data-library-search>
+                                    <label for="library-search-input" class="library-search-field">
+                                        <span class="sr-only">Bücher durchsuchen</span>
+                                        <input id="library-search-input" type="search" autocomplete="off" placeholder="Titel oder Autor …">
+                                    </label>
+                                    <button type="button" id="library-search-toggle" class="library-icon-button" aria-label="Suche öffnen" aria-expanded="false">
+                                        <i data-lucide="search" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="library-drawer-body">
+                            <div id="library-all-container" class="library-all-grid">
+                                <!-- Complete library populated by JS -->
+                            </div>
+                            <p id="library-empty-search" class="library-empty-search" data-library-text="emptySearch" hidden>Kein Buch gefunden.</p>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </section>
 
         <!-- Documents Section -->
-        <section id="documents" class="py-20 bg-gx-card border-y border-zinc-800 relative overflow-hidden">
-            <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-            <div class="max-w-7xl mx-auto px-4 relative z-10 fade-up">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
-                        <span class="text-zinc-600">05.</span> Dokumente
-                    </h2>
-                    <button type="button" onclick="openFormModal('document'); playClickSound();" class="admin-only px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Hinzufügen
-                    </button>
-                </div>
-                <p class="text-gx-muted mb-10">Zertifikate, Zeugnisse und Diplome zum Ansehen und Herunterladen.</p>
+        <section id="documents" class="documents-section">
+            <div class="documents-shell fade-up">
+                <header class="documents-heading">
+                    <div class="documents-title-group">
+                        <h2 data-documents-text="sectionTitle">Dokumente</h2>
+                        <p data-documents-text="subtitle">Belege meines Weges</p>
+                    </div>
+                    <span class="documents-heading-line" aria-hidden="true"></span>
+                    <div class="documents-heading-actions">
+                        <button type="button" onclick="openDocumentsAdmin(); playClickSound();" class="documents-admin-add admin-only">
+                            <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+                            <span>Dokumente bearbeiten</span>
+                        </button>
+                        <button type="button" id="documents-open-all" class="documents-open-all" aria-controls="documents-drawer" aria-expanded="false">
+                            <span data-documents-text="allDocumentsLabel">Alle Dokumente</span>
+                            <i data-lucide="arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </header>
 
-                <div id="documents-container" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Documents populated by JS -->
+                <div class="documents-workstation">
+                    <div id="documents-container" class="documents-tabs" aria-label="Ausgewählte Dokumente">
+                        <!-- Featured documents populated by JS -->
+                    </div>
+                    <div id="document-active-panel" class="document-active-panel" aria-live="polite">
+                        <!-- Selected document populated by JS -->
+                    </div>
                 </div>
 
-                <div class="mt-10 text-center">
-                    <button type="button" id="btn-more-documents" onclick="toggleMore('documents'); playClickSound();" class="px-6 py-3 border border-zinc-700 text-gx-text hover:border-gx-yellow hover:text-gx-yellow transition-colors font-mono text-sm">
-                        Mehr Dokumente anzeigen
-                    </button>
+                <div id="documents-drawer" class="documents-drawer" aria-hidden="true" hidden>
+                    <button type="button" class="documents-drawer-backdrop" data-documents-close aria-label="Dokumentenarchiv schließen"></button>
+                    <section class="documents-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="documents-drawer-title">
+                        <header class="documents-drawer-header">
+                            <button type="button" class="documents-icon-button documents-drawer-close" data-documents-close aria-label="Dokumentenarchiv schließen">
+                                <i data-lucide="arrow-left" aria-hidden="true"></i>
+                            </button>
+                            <div>
+                                <span data-documents-text="archiveKicker">Dokumente</span>
+                                <h3 id="documents-drawer-title" data-documents-text="archiveTitle">Alle Dokumente</h3>
+                            </div>
+                            <button type="button" onclick="openDocumentsAdmin({ newDocument: true }); playClickSound();" class="documents-admin-add admin-only">
+                                <i data-lucide="plus" aria-hidden="true"></i>
+                                <span>Hinzufügen</span>
+                            </button>
+                        </header>
+                        <div class="documents-drawer-body">
+                            <div id="documents-all-container" class="documents-all-list">
+                                <!-- Complete document archive populated by JS -->
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </section>
 
         <!-- Blog Section -->
-        <section id="blog" class="py-20 max-w-7xl mx-auto px-4 relative">
-            <div class="fade-up">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-3xl font-mono font-bold flex items-center gap-4 text-gx-yellow w-full">
-                        <span class="text-zinc-600">06.</span> Blog / Notizen
-                        <span class="h-px bg-zinc-800 flex-1 hidden md:block" aria-hidden="true"></span>
-                    </h2>
-                    <button type="button" onclick="openFormModal('blog'); playClickSound();" class="admin-only px-4 py-2 border border-gx-yellow text-gx-yellow hover:bg-gx-yellow hover:text-gx-bg transition-colors font-mono text-sm flex items-center gap-2 shadow-lg shadow-gx-yellow/10 whitespace-nowrap">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Beitrag erstellen
-                    </button>
-                </div>
-                <p class="text-gx-muted mb-10">Kurze Notizen über Dinge, die ich derzeit aktiv lerne und erforsche.</p>
+        <section id="blog" class="blog-section">
+            <div class="blog-shell fade-up">
+                <header class="blog-heading">
+                    <div class="blog-title-group">
+                        <h2 data-blog-text="sectionTitle">Blog</h2>
+                    </div>
+                    <span class="blog-heading-line" aria-hidden="true"></span>
+                    <div class="blog-heading-actions">
+                        <button type="button" onclick="openBlogAdmin(); playClickSound();" class="blog-admin-add admin-only">
+                            <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+                            <span>Blog bearbeiten</span>
+                        </button>
+                        <button type="button" id="blog-open-all" class="blog-open-all" aria-controls="blog-archive-drawer" aria-expanded="false">
+                            <span data-blog-text="allPostsLabel">Alle Beiträge</span>
+                            <i data-lucide="arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </header>
 
-                <div id="blog-container" class="grid md:grid-cols-2 gap-8">
-                    <!-- Blog posts populated dynamically -->
+                <div id="blog-container" class="blog-stage">
+                    <!-- Blog overview populated dynamically -->
+                </div>
+
+                <div id="blog-archive-drawer" class="blog-drawer" aria-hidden="true" hidden>
+                    <button type="button" class="blog-drawer-backdrop" data-blog-archive-close aria-label="Blogarchiv schließen"></button>
+                    <section class="blog-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="blog-archive-title">
+                        <header class="blog-drawer-header">
+                            <button type="button" class="blog-icon-button blog-archive-close" data-blog-archive-close aria-label="Blogarchiv schließen">
+                                <i data-lucide="arrow-left" aria-hidden="true"></i>
+                            </button>
+                            <div class="blog-drawer-title">
+                                <span id="blog-archive-count" data-blog-archive-count>Blogarchiv</span>
+                                <h3 id="blog-archive-title" data-blog-text="archiveTitle">Alle Beiträge</h3>
+                            </div>
+                            <label class="blog-search" for="blog-search-input">
+                                <i data-lucide="search" aria-hidden="true"></i>
+                                <input id="blog-search-input" type="search" autocomplete="off" placeholder="Beiträge durchsuchen …" data-blog-placeholder="searchPlaceholder">
+                            </label>
+                            <button type="button" onclick="openBlogAdmin({ newPost: true }); playClickSound();" class="blog-admin-add admin-only">
+                                <i data-lucide="plus" aria-hidden="true"></i>
+                                <span data-blog-text="addPostLabel">Beitrag erstellen</span>
+                            </button>
+                        </header>
+                        <div class="blog-drawer-body">
+                            <div class="blog-archive-tools">
+                                <div id="blog-filter-container" class="blog-filter-container" aria-label="Blogkategorien"></div>
+                                <div id="blog-year-filter-container" class="blog-filter-container blog-advanced-filter" aria-label="Jahr auswählen" hidden></div>
+                                <div id="blog-type-filter-container" class="blog-filter-container blog-advanced-filter" aria-label="Format auswählen" hidden></div>
+                            </div>
+                            <div id="blog-archive-container" class="blog-archive-container"></div>
+                            <p id="blog-archive-empty" class="blog-empty" data-blog-text="emptyArchive" hidden>Kein passender Beitrag gefunden.</p>
+                            <button type="button" id="blog-load-more" class="blog-load-more" hidden>
+                                <span data-blog-text="loadMoreLabel">Weitere Beiträge laden</span>
+                                <i data-lucide="chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="blog-post-drawer" class="blog-post-drawer" aria-hidden="true" hidden>
+                    <button type="button" class="blog-drawer-backdrop" data-blog-post-close aria-label="Beitrag schließen"></button>
+                    <section class="blog-post-panel" role="dialog" aria-modal="true" aria-labelledby="blog-post-title">
+                        <span id="blog-reading-progress" class="blog-reading-progress" aria-hidden="true"></span>
+                        <header class="blog-post-toolbar">
+                            <button type="button" class="blog-icon-button" data-blog-post-close aria-label="Zurück zum Blog">
+                                <i data-lucide="arrow-left" aria-hidden="true"></i>
+                            </button>
+                            <div id="blog-post-toolbar-meta" class="blog-post-toolbar-meta">
+                                <span data-blog-text="posterLabel">BLOG</span>
+                            </div>
+                            <button type="button" class="blog-icon-button" data-blog-post-close aria-label="Beitrag schließen">
+                                <i data-lucide="x" aria-hidden="true"></i>
+                            </button>
+                        </header>
+                        <div id="blog-post-scroll" class="blog-post-scroll">
+                            <div id="blog-post-content"></div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </section>
@@ -373,7 +510,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gx-card border-t border-zinc-800 py-8 text-center text-zinc-400 font-mono text-sm mt-10">
+    <footer class="site-footer bg-gx-card border-t border-zinc-800 py-8 text-center text-zinc-400 font-mono text-sm">
         <p>Erstellt mit <i data-lucide="coffee" class="w-4 h-4 inline-block text-gx-yellow mx-1"></i> und <i data-lucide="heart" class="w-4 h-4 inline-block text-gx-yellow mx-1"></i></p>
         <p class="mt-2">&copy; 2026 Alle Rechte vorbehalten.</p>
         <p class="mt-4 text-xs text-zinc-400 admin-only-block hidden">Tipp: Ctrl + Shift + R zum Beenden des Admin-Modus</p>
@@ -396,6 +533,9 @@
     <script src="js/ui/interactions.js"></script>
     <script src="js/render/about.js"></script>
     <script src="js/render/sections.js"></script>
+    <script src="js/render/library.js"></script>
+    <script src="js/render/documents.js"></script>
+    <script src="js/render/blog.js"></script>
     <script src="js/render/projects.js"></script>
     <script src="js/admin/editor.js"></script>
     <script src="js/app.js"></script>

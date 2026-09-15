@@ -31,12 +31,13 @@ function renderSection(type) {
     observeElements();
 }
 
-function renderProfileAndAbout() {
+function renderProfileAndAbout(options = {}) {
     const p = state.data.profile;
-    document.getElementById('hero-name').innerText = p.name || "Ivan";
-    document.getElementById('hero-role').innerText = p.role || "";
-
-    updateSliderView();
+    if (!options.skipProfile) {
+        document.getElementById('hero-name').innerText = p.name || "Ivan";
+        document.getElementById('hero-role').innerText = p.role || "";
+        updateSliderView();
+    }
 
     state.data.about = migrateAboutData(state.data.about);
     const ab = state.data.about;
@@ -49,6 +50,8 @@ function renderProfileAndAbout() {
 
     if (introShortEl) introShortEl.innerText = ab.introShort || "";
     if (introFullEl) introFullEl.innerText = ab.introFull || "";
+    applyAboutContentSettings(ab);
+    applyAboutLayoutSettings(ab);
     if (factsGridEl) factsGridEl.innerHTML = renderAboutFacts(ab);
     if (skillsGridEl) skillsGridEl.innerHTML = renderAboutSkills(ab);
     if (principlesGridEl) principlesGridEl.innerHTML = renderAboutPrinciples(ab);
@@ -101,59 +104,7 @@ function renderProjectsLegacy() {
     if(projects.length > limit) btn.innerText = state.expanded.projects ? 'Verbergen' : 'Mehr Projekte anzeigen';
 }
 
-function renderBooks() {
-    const topC = document.getElementById('top-books-container');
-    const otherC = document.getElementById('books-container');
-    if (!topC || !otherC) return;
-    const books = Array.isArray(state.data.books) ? state.data.books : [];
-
-    const topBooks = books.filter(b => b.top).slice(0, 5);
-    topC.innerHTML = topBooks.map((b, i) => {
-        const id = encodeInlineId(b.id);
-        return `
-        <li class="flex items-start gap-3 group/item relative cursor-pointer" onclick="openViewModal('book', decodeURIComponent('${id}')); playClickSound();">
-            <div class="absolute right-0 top-0 hidden admin-only group-hover/item:flex gap-1 bg-gx-card pl-2 z-10">
-                <button type="button" onclick="event.stopPropagation(); openFormModal('book', decodeURIComponent('${id}')); playClickSound();" aria-label="Buch bearbeiten" class="text-zinc-500 hover:text-gx-yellow p-1"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button type="button" onclick="event.stopPropagation(); requestDelete('book', decodeURIComponent('${id}')); playClickSound();" aria-label="Buch löschen" class="text-zinc-500 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-            <span class="text-gx-yellow font-mono font-bold">${i+1}.</span>
-            <div>
-                <p class="font-bold group-hover:text-gx-yellow transition-colors">${escapeHtml(b.title || 'Buch')}</p>
-                <p class="text-xs text-gx-muted">${escapeHtml(b.author || '')}</p>
-            </div>
-        </li>
-    `}).join('');
-
-    const otherBooks = books.filter(b => !b.top);
-    const limit = 4;
-    const items = state.expanded.books ? otherBooks : otherBooks.slice(0, limit);
-
-    otherC.innerHTML = items.map(b => {
-        const id = encodeInlineId(b.id);
-        const imageUrl = getSafeImageUrl(b.img);
-        const icon = normalizeIconName(b.icon, 'book');
-        return `
-        <div class="p-4 bg-gx-card border border-zinc-800 flex items-center gap-4 hover:border-gx-yellow/50 transition-colors cursor-pointer relative group/item" onclick="openViewModal('book', decodeURIComponent('${id}')); playClickSound();">
-            <div class="absolute right-2 top-2 hidden admin-only group-hover/item:flex gap-1 bg-gx-card p-1 z-10 shadow-lg border border-zinc-700 rounded">
-                <button type="button" onclick="event.stopPropagation(); openFormModal('book', decodeURIComponent('${id}')); playClickSound();" aria-label="Buch bearbeiten" class="text-zinc-400 hover:text-gx-yellow p-1"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button type="button" onclick="event.stopPropagation(); requestDelete('book', decodeURIComponent('${id}')); playClickSound();" aria-label="Buch löschen" class="text-zinc-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-            <div class="bg-zinc-800 p-3 text-zinc-400 shrink-0">
-                ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" class="w-6 h-6 object-cover rounded-sm">` : `<i data-lucide="${icon}"></i>`}
-            </div>
-            <div class="min-w-0 pr-10">
-                <h4 class="font-bold truncate group-hover:text-gx-yellow transition-colors">${escapeHtml(b.title || 'Buch')}</h4>
-                <p class="text-sm text-gx-muted truncate">${escapeHtml(b.author || '')}</p>
-            </div>
-        </div>
-    `}).join('');
-
-    const btn = document.getElementById('btn-more-books');
-    btn.style.display = otherBooks.length <= limit ? 'none' : 'inline-block';
-    if(otherBooks.length > limit) btn.innerText = state.expanded.books ? 'Verbergen' : 'Mehr anzeigen';
-}
-
-function renderDocuments() {
+function renderDocumentsLegacy() {
     const c = document.getElementById('documents-container');
     if (!c) return;
     const limit = 4;
@@ -195,7 +146,7 @@ function renderDocuments() {
     if(documents.length > limit) btn.innerText = state.expanded.documents ? 'Verbergen' : 'Mehr Dokumente anzeigen';
 }
 
-function renderBlog() {
+function renderBlogLegacy() {
     const container = document.getElementById('blog-container');
     const blogs = Array.isArray(state.data.blogs) ? state.data.blogs : [];
 
@@ -228,30 +179,70 @@ function renderBlog() {
 
 
 function getEducationItems() {
-    return mergeEducationItemsById(state.data.educationItems, getDefaultEducationItems());
+    return mergeEducationItemsById(
+        state.data.educationItems,
+        getDefaultEducationItems(),
+        state.data.educationRemovedItems
+    );
 }
 
 function getEducationGoal() {
-    return state.data.educationGoal && typeof state.data.educationGoal === 'object'
-        ? { ...getDefaultEducationGoal(), ...state.data.educationGoal, locked: true }
-        : getDefaultEducationGoal();
+    const defaultGoal = getDefaultEducationGoal();
+    const sourceGoal = state.data.educationGoal && typeof state.data.educationGoal === 'object'
+        ? state.data.educationGoal
+        : {};
+    const sourceBranches = Array.isArray(sourceGoal.branches) ? sourceGoal.branches : [];
+    const sourceBranchesById = new Map(sourceBranches
+        .filter(branch => branch && typeof branch === 'object' && branch.id)
+        .map(branch => [branch.id, branch]));
+
+    return {
+        locked: true,
+        branches: defaultGoal.branches.map(branch => ({
+            ...branch,
+            ...(sourceBranchesById.get(branch.id) || {}),
+            id: branch.id,
+            locked: true
+        }))
+    };
 }
 
 function getEducationPositionClass(index) {
-    return [0, 2, 4, 6, 7].includes(index) ? 'is-top' : 'is-bottom';
+    return index % 2 === 0 ? 'is-top' : 'is-bottom';
+}
+
+function applyEducationContentSettings() {
+    const content = normalizeEducationTextMap(state.data.educationContent, getDefaultEducationContent());
+    const title = document.getElementById('education-section-title');
+    const subtitle = document.getElementById('education-section-subtitle');
+    if (title) title.textContent = content.sectionTitle;
+    if (subtitle) subtitle.textContent = content.sectionSubtitle;
+}
+
+function applyEducationLayoutSettings(container) {
+    const layout = normalizeEducationLayout(state.data.educationLayout);
+    container.style.setProperty('--education-card-width', `${layout.cardWidth}px`);
+    container.style.setProperty('--education-card-height', `${layout.cardHeight}px`);
+    container.style.setProperty('--education-track-height', `${layout.timelineHeight}px`);
+    container.style.setProperty('--education-line-top', `${layout.linePosition}px`);
+    container.style.setProperty('--education-goal-width', `${layout.goalWidth}px`);
 }
 
 function renderEducation() {
     const container = document.getElementById('education-timeline-container');
     if (!container) return;
 
-    const items = getEducationItems().slice(0, 8);
+    applyEducationContentSettings();
+    applyEducationLayoutSettings(container);
+    const items = getEducationItems().slice(0, 20);
     const goal = getEducationGoal();
-    const nodesHtml = items.map((item, index) => renderEducationNode(item, index)).join('');
+    const nodesHtml = items.map((item, index) => renderEducationNode(item, index, index === items.length - 1)).join('');
+    const scrollClass = items.length > 8 ? ' is-scrollable' : '';
+    const trackWidth = Math.max(0, (items.length * 168) + 288);
 
     container.innerHTML = `
-        <div class="education-timeline-scroll" aria-label="Bildungsweg Timeline">
-            <div class="education-timeline-track">
+        <div class="education-timeline-scroll${scrollClass}" aria-label="Bildungsweg Timeline">
+            <div class="education-timeline-track${scrollClass}" style="--education-item-count: ${Math.max(items.length, 1)}; --education-track-min-width: ${trackWidth}px">
                 ${nodesHtml}
                 ${renderEducationGoal(goal)}
             </div>
@@ -261,11 +252,12 @@ function renderEducation() {
 
 function formatEducationCardTitle(title) {
     return escapeHtml(title || 'Bildung')
-        .replace('3D-Visualisierungskurs', '3D-<wbr>Visualisierungs<wbr>kurs')
+        .replace('3D-Visualisierung', '3D-<wbr>Visualisierung')
+        .replace('AI-Integrator-Kurs', 'AI-Integrator-<wbr>Kurs')
         .replace('Arbeitsvorbereitung', 'Arbeits<wbr>vorbereitung');
 }
 
-function renderEducationNode(item, index) {
+function renderEducationNode(item, index, isLast = false) {
     const id = encodeURIComponent(String(item.id || ''));
     const positionClass = getEducationPositionClass(index);
     const stateClass = item.statusType === 'current' ? 'is-current' : item.statusType === 'completed' ? 'is-completed' : item.statusType === 'partial' ? 'is-partial' : 'is-progress';
@@ -280,11 +272,15 @@ function renderEducationNode(item, index) {
     const level = escapeHtml(item.level || String(index + 1).padStart(2, '0'));
     const years = escapeHtml(item.years || '');
     const currentLabel = item.statusType === 'current' ? `<div class="education-card-current-label">Aktuell</div>` : '';
+    const clickable = item.clickable !== false;
+    const actionAttributes = clickable
+        ? `onclick="openEducationDetail(decodeURIComponent('${id}')); playClickSound();"`
+        : 'disabled aria-disabled="true"';
 
     return `
-        <div class="education-node ${positionClass} ${stateClass}">
+        <div class="education-node ${positionClass} ${stateClass}${isLast ? ' is-last' : ''}">
             <span class="education-dot" aria-hidden="true"></span>
-            <button type="button" class="education-card ${stateClass}" onclick="openEducationDetail(decodeURIComponent('${id}')); playClickSound();" aria-label="Details zu ${title} öffnen">
+            <button type="button" class="education-card ${stateClass}" ${actionAttributes} aria-label="Details zu ${title} öffnen">
                 <span class="education-card-meta">
                     <span class="education-card-lvl">LVL ${level}</span>
                     ${years ? `<span class="education-card-years">${years}</span>` : ''}
@@ -299,19 +295,38 @@ function renderEducationNode(item, index) {
 }
 
 function renderEducationGoal(goal) {
-    const title = escapeHtml(goal?.title || 'Ausbildung');
-    const subtitle = escapeHtml(goal?.subtitle || 'Nächstes Ziel');
-    const status = escapeHtml(goal?.status || 'Aktiv');
-    const icon = escapeHtml(goal?.icon || 'lock');
+    const branches = Array.isArray(goal?.branches) && goal.branches.length > 0
+        ? goal.branches.slice(0, 2)
+        : getDefaultEducationGoal().branches;
+    const ariaLabel = branches
+        .map(branch => String(branch?.title || 'Nächster Weg'))
+        .join(' oder ');
+    const branchesHtml = branches.map((branch, index) => {
+        const title = escapeHtml(branch?.title || 'Nächster Weg');
+        const subtitle = escapeHtml(branch?.subtitle || 'Möglicher Weg');
+        const status = escapeHtml(branch?.status || 'Offen');
+        const icon = escapeHtml(branch?.icon || 'lock');
+        const positionClass = index === 0 ? 'is-upper' : 'is-lower';
+
+        return `
+            <div class="education-goal-branch ${positionClass}">
+                <div class="education-goal-marker" aria-disabled="true" aria-label="${subtitle}: ${title}, ${status}">
+                    <span class="education-goal-label">${subtitle}</span>
+                    <i data-lucide="${icon}"></i>
+                    <span class="education-goal-title">${title}</span>
+                    <span class="education-goal-status">${status}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
 
     return `
-        <div class="education-goal-node" aria-label="${subtitle}: ${title}, ${status}">
+        <div class="education-goal-node" aria-label="Mögliche nächste Wege: ${escapeHtml(ariaLabel)}">
             <span class="education-goal-dot" aria-hidden="true"></span>
-            <div class="education-goal-marker" aria-disabled="true">
-                <span class="education-goal-label">${subtitle}</span>
-                <i data-lucide="${icon}"></i>
-                <span class="education-goal-title">${title}</span>
-                <span class="education-goal-status">${status}</span>
+            <span class="education-goal-fork-line is-upper" aria-hidden="true"></span>
+            <span class="education-goal-fork-line is-lower" aria-hidden="true"></span>
+            <div class="education-goal-branches">
+                ${branchesHtml}
             </div>
         </div>
     `;
@@ -404,7 +419,14 @@ function renderEducationEvidence(evidence) {
 
 function isSafeEducationUrl(url) {
     const value = String(url || '').trim();
-    return /^(https?:|data:image\/(png|jpe?g|gif|webp);base64,)/i.test(value) ? value : '';
+    if (!value || value === '#') return '';
+    if (/^data:image\/(png|jpe?g|gif|webp);base64,/i.test(value)) return value;
+    try {
+        const parsed = new URL(value, window.location.href);
+        return ['http:', 'https:', 'file:', 'blob:'].includes(parsed.protocol) ? value : '';
+    } catch (_error) {
+        return '';
+    }
 }
 
 function renderEducationEvidenceCard(item) {

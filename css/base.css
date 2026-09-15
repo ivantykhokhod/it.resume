@@ -29,6 +29,69 @@ button, a, input, textarea { -webkit-tap-highlight-color: transparent; }
 .admin-mode-active .admin-only { display: flex !important; }
 .admin-mode-active .admin-only-block { display: block !important; }
 
+.admin-command-bar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 160;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.42rem clamp(0.65rem, 2vw, 1.25rem);
+    color: #09090b;
+    background: #FFD700;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.45);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.admin-command-bar.hidden {
+    display: none;
+}
+
+.admin-command-status,
+.admin-command-actions,
+.admin-command-status > span,
+.admin-command-primary,
+.admin-command-secondary,
+.admin-command-close {
+    display: flex;
+    align-items: center;
+}
+
+.admin-command-status { gap: 0.55rem; }
+.admin-command-status > span { align-items: baseline; gap: 0.55rem; }
+.admin-command-status strong { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.admin-command-status small { font-size: 0.65rem; opacity: 0.62; }
+.admin-command-actions { gap: 0.45rem; }
+
+.admin-command-primary,
+.admin-command-secondary,
+.admin-command-close {
+    min-height: 29px;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.32rem 0.65rem;
+    border: 1px solid rgba(9, 9, 11, 0.72);
+    font-size: 0.7rem;
+    font-weight: 800;
+    transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.admin-command-primary { color: #FFD700; background: #09090b; }
+.admin-command-primary:hover { background: #27272a; }
+.admin-command-secondary { background: rgba(255, 255, 255, 0.2); }
+.admin-command-secondary:hover,
+.admin-command-close:hover { background: rgba(9, 9, 11, 0.12); }
+.admin-command-close { width: 31px; padding-inline: 0; border-color: transparent; }
+
+@media (max-width: 640px) {
+    .admin-command-status small,
+    .admin-command-secondary span,
+    .admin-command-primary span { display: none; }
+}
+
 /* Lightbox Animations */
 @keyframes zoomIn {
     from { opacity: 0; transform: scale(0.95); }

@@ -11,6 +11,8 @@ let projectsDrawerCloseTimer = null;
 let projectsKeyboardBound = false;
 let projectsDrawerResizeBound = false;
 let projectDetailsReturnId = null;
+let projectDetailsReturnMode = 'story';
+let projectsTechnologyDisclosureBound = false;
 
 function getProjectShowcaseItems() {
     return Array.isArray(state?.data?.projects) ? state.data.projects : [];
@@ -18,6 +20,56 @@ function getProjectShowcaseItems() {
 
 function getProjectShowcaseItem(projectId) {
     return getProjectShowcaseItems().find(project => String(project.id) === String(projectId)) || null;
+}
+
+function getProjectsContent() {
+    return typeof normalizeProjectsContent === 'function'
+        ? normalizeProjectsContent(state?.data?.projectsContent)
+        : (state?.data?.projectsContent || {});
+}
+
+function getProjectsLayout() {
+    return typeof normalizeProjectsLayout === 'function'
+        ? normalizeProjectsLayout(state?.data?.projectsLayout)
+        : (state?.data?.projectsLayout || {});
+}
+
+function getProjectFeatures(project, fallback = []) {
+    return Array.isArray(project?.features) && project.features.length
+        ? project.features
+        : (Array.isArray(fallback) ? fallback : []);
+}
+
+function getProjectDetails(project, fallback = []) {
+    return Array.isArray(project?.details)
+        ? project.details
+        : (Array.isArray(fallback) ? fallback : []);
+}
+
+function getProjectDetailsLayerId(project) {
+    return {
+        nivora: 'nivora-details-layer',
+        resume: 'resume-structure-layer',
+        'idea-capture': 'idea-capture-details-layer'
+    }[project?.showcaseKey] || '';
+}
+
+function setProjectDetailsExpandedState(isOpen) {
+    document.querySelectorAll('[data-project-details-trigger], [data-project-select-details]').forEach(button => {
+        const encodedId = button.dataset.projectDetailsTrigger || button.dataset.projectSelectDetails || '';
+        const buttonProjectId = decodeURIComponent(encodedId);
+        button.setAttribute('aria-expanded', String(Boolean(isOpen) && String(buttonProjectId) === String(projectDetailsReturnId)));
+    });
+}
+
+function restoreProjectDetailsFocus() {
+    if (!projectDetailsReturnId) return;
+    const encodedId = encodeInlineId(projectDetailsReturnId);
+    const selector = projectDetailsReturnMode === 'picker'
+        ? `[data-project-select-details="${encodedId}"]`
+        : `[data-project-details-trigger="${encodedId}"]`;
+    const triggers = [...document.querySelectorAll(selector)];
+    triggers.find(button => button.offsetParent !== null)?.focus({ preventScroll: true });
 }
 
 function getProjectHighlights(project) {
@@ -49,7 +101,7 @@ function renderProjectPickerCard(project, context = 'compact') {
     const title = escapeHtml(project.title || 'Projekt');
     const category = escapeHtml(project.category || 'Projekt');
     const desc = escapeHtml(project.desc || '');
-    const status = escapeHtml(project.status || '');
+    const status = escapeHtml(project.status || project.period || '');
     const showcaseIcons = {
         nivora: 'activity',
         resume: 'globe-2',
@@ -57,14 +109,8 @@ function renderProjectPickerCard(project, context = 'compact') {
     };
     const icon = showcaseIcons[project.showcaseKey] || normalizeIconName(project.icon, 'folder');
     const selected = String(project.id) === String(selectedProjectShowcaseId);
-    const showStatus = context === 'drawer' && status;
-    const detailsLayerIds = {
-        nivora: 'nivora-details-layer',
-        resume: 'resume-structure-layer',
-        'idea-capture': 'idea-capture-details-layer'
-    };
-    const hasDetailsTrigger = Boolean(detailsLayerIds[project.showcaseKey]) && context === 'compact';
-    const detailsLayerId = detailsLayerIds[project.showcaseKey] || '';
+    const showDescription = context === 'drawer' && desc;
+    const detailsLayerId = getProjectDetailsLayerId(project);
 
     return `
         <article class="project-picker-card project-picker-card-${context} project-picker-card-${escapeHtml(project.showcaseKey || 'generic')} ${selected ? 'is-selected' : ''}" data-project-picker-card="${id}">
@@ -73,64 +119,103 @@ function renderProjectPickerCard(project, context = 'compact') {
                 class="project-picker-button"
                 data-project-select="${id}"
                 aria-pressed="${selected}"
+                aria-label="${title} auswählen"
                 aria-controls="project-showcase-detail">
                 <span class="project-picker-icon" aria-hidden="true"><i data-lucide="${icon}"></i></span>
                 <span class="project-picker-copy">
                     <strong>${title}</strong>
                     <span>${category}</span>
-                    <small>${desc}</small>
-                    ${showStatus ? `<em><span aria-hidden="true"></span>${status}</em>` : ''}
+                    ${showDescription ? `<small>${desc}</small>` : ''}
+                    ${status ? `<em><span aria-hidden="true"></span>${status}</em>` : ''}
                 </span>
-                ${hasDetailsTrigger
-                    ? '<span class="project-picker-arrow-slot" aria-hidden="true"></span>'
-                    : '<i data-lucide="arrow-right" class="project-picker-arrow" aria-hidden="true"></i>'}
             </button>
-            ${hasDetailsTrigger ? `
-                <button
-                    type="button"
-                    class="project-picker-details-trigger"
-                    data-project-details-trigger="${id}"
-                    aria-label="Zusatzinformationen zu ${title} öffnen"
-                    aria-controls="${escapeHtml(detailsLayerId)}"
-                    aria-expanded="false">
-                    <i data-lucide="arrow-right" aria-hidden="true"></i>
-                </button>
-            ` : ''}
-            <div class="project-picker-admin admin-only">
-                <button type="button" onclick="openFormModal('project', decodeURIComponent('${id}')); playClickSound();" aria-label="${title} bearbeiten">
-                    <i data-lucide="pencil"></i>
-                </button>
-                <button type="button" onclick="requestDelete('project', decodeURIComponent('${id}')); playClickSound();" aria-label="${title} löschen">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </div>
+            <button
+                type="button"
+                class="project-picker-open"
+                data-project-select-details="${id}"
+                aria-label="${title} auswählen und mehr zum Projekt öffnen"
+                aria-haspopup="dialog"
+                aria-expanded="false"
+                ${detailsLayerId ? `aria-controls="${detailsLayerId}"` : ''}>
+                <i data-lucide="arrow-right" class="project-picker-arrow" aria-hidden="true"></i>
+            </button>
+            <button
+                type="button"
+                class="project-picker-admin-edit admin-only"
+                onclick="openAdminStudio('projects', { itemId: decodeURIComponent('${id}') }); playClickSound();"
+                aria-label="${title} im Admin Studio bearbeiten">
+                <i data-lucide="pencil"></i>
+            </button>
         </article>
     `;
 }
 
-function renderProjectMeta(project) {
+function renderProjectMeta(project, standalone = false) {
+    const labels = getProjectsContent();
     const techItems = String(project.tech || '')
         .split(',')
         .map(item => item.trim())
-        .filter(Boolean)
-        .slice(0, 8);
-    const status = project.period || project.status || 'In Entwicklung';
+        .filter(Boolean);
+    const visibleTechItems = techItems.slice(0, 4);
+    const hiddenTechItems = techItems.slice(visibleTechItems.length);
+    const remainingTechItems = hiddenTechItems.length;
+    const status = project.status || project.period || 'In Entwicklung';
+    const disclosureId = `project-tech-overflow-${String(project.id || 'selected').replace(/[^a-z0-9_-]/gi, '-')}`;
+    const extraLabel = labels.extraTechnologiesLabel || 'Weitere Technologien';
 
     return `
-        <div class="project-detail-meta">
+        <dl class="project-detail-meta ${standalone ? 'is-standalone' : ''}">
             <div class="project-meta-role">
-                <span>Rolle</span>
-                <strong>${escapeHtml(project.role || 'Konzept und Umsetzung')}</strong>
+                <dt>${escapeHtml(labels.roleLabel || 'Mein Beitrag')}</dt>
+                <dd>${escapeHtml(project.role || 'Idee und Umsetzung')}</dd>
             </div>
             <div class="project-meta-status">
-                <span>Status</span>
-                <strong><i aria-hidden="true"></i>${escapeHtml(status)}</strong>
+                <dt>${escapeHtml(labels.statusLabel || 'Status')}</dt>
+                <dd><i aria-hidden="true"></i>${escapeHtml(status)}</dd>
             </div>
             <div class="project-detail-technologies">
-                <span>Technologien</span>
-                <div>${techItems.map(item => `<b>${escapeHtml(item)}</b>`).join('')}</div>
+                <dt>${escapeHtml(labels.technologiesLabel || 'Verwendet')}</dt>
+                <dd>
+                    ${visibleTechItems.map(item => `<b>${escapeHtml(item)}</b>`).join('')}
+                    ${remainingTechItems ? `
+                        <span class="project-tech-disclosure">
+                            <button
+                                type="button"
+                                class="project-tech-more-toggle"
+                                data-project-tech-toggle
+                                data-count="${remainingTechItems}"
+                                data-label="${escapeHtml(extraLabel)}"
+                                aria-expanded="false"
+                                aria-controls="${escapeHtml(disclosureId)}"
+                                aria-label="${remainingTechItems} ${escapeHtml(extraLabel)} anzeigen">+${remainingTechItems}</button>
+                            <span id="${escapeHtml(disclosureId)}" class="project-tech-overflow" hidden>
+                                <small>${escapeHtml(extraLabel)}</small>
+                                <span>${hiddenTechItems.map(item => `<b>${escapeHtml(item)}</b>`).join('')}</span>
+                            </span>
+                        </span>
+                    ` : ''}
+                </dd>
             </div>
-        </div>
+        </dl>
+    `;
+}
+
+function renderProjectMoreButton(project) {
+    const labels = getProjectsContent();
+    const id = encodeInlineId(project.id);
+    const controls = getProjectDetailsLayerId(project);
+    if (!controls) return '';
+
+    return `
+        <button
+            type="button"
+            class="project-more-button"
+            data-project-details-trigger="${id}"
+            aria-controls="${controls}"
+            aria-expanded="false">
+            ${escapeHtml(labels.moreButtonLabel || 'Mehr zum Projekt')}
+            <i data-lucide="arrow-right" aria-hidden="true"></i>
+        </button>
     `;
 }
 
@@ -146,7 +231,7 @@ function renderGenericProjectPreview(project) {
                     ? `<img src="${escapeHtml(imageUrl)}" alt="Vorschau: ${escapeHtml(project.title || 'Projekt')}" loading="lazy" decoding="async">`
                     : `<div class="project-generic-icon" aria-hidden="true"><i data-lucide="${icon}"></i></div>`}
             </div>
-            ${renderProjectMeta(project)}
+            ${renderProjectMeta(project, true)}
             <div class="project-generic-content">
                 <p class="project-generic-label">${escapeHtml(project.category || 'Projekt')}</p>
                 <h3>${escapeHtml(project.title || 'Projekt')}</h3>
@@ -165,7 +250,9 @@ function renderGenericProjectPreview(project) {
 }
 
 function renderNivoraVideoShowcase(project) {
-    const first = NIVORA_VIDEO_FEATURES[0];
+    const features = getProjectFeatures(project, NIVORA_VIDEO_FEATURES);
+    const first = features[0];
+    if (!first) return renderGenericProjectPreview(project);
 
     return `
         <section class="nivora-showcase" data-nivora-showcase aria-labelledby="nivora-showcase-title">
@@ -186,16 +273,20 @@ function renderNivoraVideoShowcase(project) {
                 </div>
             </div>
 
-            ${renderProjectMeta(project)}
+            <div class="nivora-feature-copy project-story-card">
+                <p class="project-story-kicker">${escapeHtml(project.category || 'Projekt')}</p>
+                <h4 id="nivora-showcase-title">${escapeHtml(project.title || 'Nivora')}</h4>
+                <p class="project-story-summary">${escapeHtml(project.desc || '')}</p>
 
-            <div class="nivora-feature-copy">
-                <p>Nivora</p>
-                <h4 id="nivora-showcase-title">Alle Erfahrungen.<br>Ein gemeinsames System.</h4>
+                ${renderProjectMeta(project)}
+
                 <div class="nivora-active-feature" aria-live="polite">
                     <span data-nivora-eyebrow>${escapeHtml(first.eyebrow)}</span>
                     <strong data-nivora-title>${escapeHtml(first.title)}</strong>
                     <p data-nivora-description>${escapeHtml(first.description)}</p>
                 </div>
+
+                ${renderProjectMoreButton(project)}
             </div>
 
             <div class="nivora-showcase-tabs" role="tablist" aria-label="Nivora-Funktionen" data-nivora-tabs></div>
@@ -207,11 +298,11 @@ function renderNivoraVideoShowcase(project) {
                         <button type="button" data-project-insights-close aria-label="Nivora-Projektinformationen schließen">
                             <i data-lucide="arrow-left" aria-hidden="true"></i>
                         </button>
-                        <span id="nivora-details-title">Nivora · Projektsystem</span>
+                        <span id="nivora-details-title">${escapeHtml(project.detailsTitle || 'Nivora · Projektsystem')}</span>
                     </div>
-                    <p class="project-insights-intro">Nivora ist die Zusammenführung meiner bisherigen Produkt-, Web- und Android-Erfahrungen. Die Anwendung ist funktionsfähig, aber noch eine Rohversion.</p>
+                    <p class="project-insights-intro">${escapeHtml(project.detailsIntro || '')}</p>
                     <div class="project-insights-grid nivora-insights-grid">
-                        ${renderNivoraProjectDetails()}
+                        ${renderNivoraProjectDetails(project)}
                     </div>
                 </aside>
             </div>
@@ -220,8 +311,8 @@ function renderNivoraVideoShowcase(project) {
 }
 
 
-function renderResumeStructureCards() {
-    const groups = Array.isArray(RESUME_WEBSITE_STRUCTURE) ? RESUME_WEBSITE_STRUCTURE : [];
+function renderResumeStructureCards(project) {
+    const groups = getProjectDetails(project, RESUME_WEBSITE_STRUCTURE);
     return groups.map(group => `
         <article class="resume-structure-card">
             ${group.preview ? `<img class="resume-structure-preview" src="${escapeHtml(group.preview)}" alt="Dateistruktur im Ordner ${escapeHtml(group.folder)}" loading="lazy" decoding="async">` : ''}
@@ -238,9 +329,8 @@ function renderResumeStructureCards() {
 }
 
 function renderResumeWebsiteShowcase(project) {
-    const first = Array.isArray(RESUME_WEBSITE_FEATURES) && RESUME_WEBSITE_FEATURES.length
-        ? RESUME_WEBSITE_FEATURES[0]
-        : null;
+    const features = getProjectFeatures(project, RESUME_WEBSITE_FEATURES);
+    const first = features[0] || null;
     if (!first) return renderGenericProjectPreview(project);
 
     return `
@@ -274,16 +364,20 @@ function renderResumeWebsiteShowcase(project) {
                 </div>
             </div>
 
-            ${renderProjectMeta(project)}
+            <div class="resume-feature-copy project-story-card">
+                <p class="project-story-kicker">${escapeHtml(project.category || 'Projekt')}</p>
+                <h4 id="resume-showcase-title">${escapeHtml(project.title || 'Resume Website')}</h4>
+                <p class="project-story-summary">${escapeHtml(project.desc || '')}</p>
 
-            <div class="resume-feature-copy">
-                <p>Resume Website</p>
-                <h4 id="resume-showcase-title">Sieben Bereiche.<br>Eine modulare Website.</h4>
+                ${renderProjectMeta(project)}
+
                 <div class="resume-active-feature" aria-live="polite">
                     <span data-resume-eyebrow>${escapeHtml(first.eyebrow)}</span>
                     <strong data-resume-title>${escapeHtml(first.title)}</strong>
                     <p data-resume-description>${escapeHtml(first.description)}</p>
                 </div>
+
+                ${renderProjectMoreButton(project)}
             </div>
 
             <div class="resume-showcase-tabs" role="tablist" aria-label="Bereiche der Resume Website" data-resume-tabs></div>
@@ -293,15 +387,15 @@ function renderResumeWebsiteShowcase(project) {
                 <aside class="resume-structure-drawer" role="dialog" aria-modal="true" aria-labelledby="resume-structure-title">
                     <div class="resume-structure-head">
                         <div>
-                            <span id="resume-structure-title">Projektstruktur</span>
+                                <span id="resume-structure-title">${escapeHtml(project.detailsTitle || 'Technischer Aufbau')}</span>
                         </div>
                         <button type="button" data-resume-details-close aria-label="Zusatzinformationen schließen">
                             <i data-lucide="arrow-left" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <p class="resume-structure-intro">Damit habe ich gelernt, wie man eine Webanwendung strukturiert über mehrere HTML-, CSS- und JavaScript-Dateien aufbaut.</p>
+                    <p class="resume-structure-intro">${escapeHtml(project.detailsIntro || '')}</p>
                     <div class="resume-structure-grid">
-                        ${renderResumeStructureCards()}
+                        ${renderResumeStructureCards(project)}
                     </div>
                 </aside>
             </div>
@@ -310,8 +404,8 @@ function renderResumeWebsiteShowcase(project) {
 }
 
 
-function renderNivoraProjectDetails() {
-    const items = Array.isArray(NIVORA_PROJECT_DETAILS) ? NIVORA_PROJECT_DETAILS : [];
+function renderNivoraProjectDetails(project) {
+    const items = getProjectDetails(project, NIVORA_PROJECT_DETAILS);
     return items.map(item => `
         <article class="project-insight-card">
             <span class="project-insight-icon" aria-hidden="true"><i data-lucide="${normalizeIconName(item.icon, 'folder')}"></i></span>
@@ -322,8 +416,8 @@ function renderNivoraProjectDetails() {
     `).join('');
 }
 
-function renderIdeaCaptureDetails() {
-    const items = Array.isArray(IDEA_CAPTURE_DETAILS) ? IDEA_CAPTURE_DETAILS : [];
+function renderIdeaCaptureDetails(project) {
+    const items = getProjectDetails(project, IDEA_CAPTURE_DETAILS);
     return items.map((item, index) => `
         <article class="project-insight-card idea-insight-card ${index === items.length - 1 ? 'idea-insight-card-wide' : ''}">
             ${item.preview ? `<img src="${escapeHtml(item.preview)}" alt="${escapeHtml(item.title || '')}" loading="lazy" decoding="async">` : ''}
@@ -338,9 +432,8 @@ function renderIdeaCaptureDetails() {
 }
 
 function renderIdeaCaptureShowcase(project) {
-    const first = Array.isArray(IDEA_CAPTURE_FEATURES) && IDEA_CAPTURE_FEATURES.length
-        ? IDEA_CAPTURE_FEATURES[0]
-        : null;
+    const features = getProjectFeatures(project, IDEA_CAPTURE_FEATURES);
+    const first = features[0] || null;
     if (!first) return renderGenericProjectPreview(project);
 
     return `
@@ -377,23 +470,22 @@ function renderIdeaCaptureShowcase(project) {
                             data-idea-progress></div>
                     </div>
                 </div>
-
-                <div class="idea-text-frame" data-idea-text-frame hidden>
-                    <span data-idea-text-eyebrow></span>
-                    <h5 data-idea-text-title></h5>
-                    <p data-idea-text-description></p>
-                    <ul data-idea-text-points></ul>
-                </div>
             </div>
 
-            ${renderProjectMeta(project)}
+            <div class="resume-feature-copy idea-feature-copy project-story-card">
+                <p class="project-story-kicker">${escapeHtml(project.category || 'Projekt')}</p>
+                <h4 id="idea-showcase-title">${escapeHtml(project.title || 'Idea Capture')}</h4>
+                <p class="project-story-summary">${escapeHtml(project.desc || '')}</p>
 
-            <div class="resume-feature-copy idea-feature-copy">
-                <p>Idea Capture</p>
-                <h4 id="idea-showcase-title">Vier Einblicke.<br>Eine vernetzte App.</h4>
-                <div class="resume-active-feature idea-active-feature">
-                    <p>Die ersten beiden Bereiche zeigen die mobile Anwendung und ihre Synchronisation. Die letzten beiden erklären, was ich gelernt habe und warum das Projekt entstanden ist.</p>
+                ${renderProjectMeta(project)}
+
+                <div class="resume-active-feature idea-active-feature" aria-live="polite">
+                    <span data-idea-eyebrow>${escapeHtml(first.eyebrow)}</span>
+                    <strong data-idea-title>${escapeHtml(first.title)}</strong>
+                    <p data-idea-description>${escapeHtml(first.description)}</p>
                 </div>
+
+                ${renderProjectMoreButton(project)}
             </div>
 
             <div class="resume-showcase-tabs idea-showcase-tabs" role="tablist" aria-label="Bereiche von Idea Capture" data-idea-tabs></div>
@@ -405,11 +497,11 @@ function renderIdeaCaptureShowcase(project) {
                         <button type="button" data-project-insights-close aria-label="Idea-Capture-Projektinformationen schließen">
                             <i data-lucide="arrow-left" aria-hidden="true"></i>
                         </button>
-                        <span id="idea-details-title">Idea Capture · Technik & Motivation</span>
+                        <span id="idea-details-title">${escapeHtml(project.detailsTitle || 'Idea Capture · Technik & Motivation')}</span>
                     </div>
-                    <p class="project-insights-intro">Die Zusatzansicht zeigt, wie Android Studio, Firebase und die persönliche Motivation hinter der Anwendung zusammengehören.</p>
+                    <p class="project-insights-intro">${escapeHtml(project.detailsIntro || '')}</p>
                     <div class="project-insights-grid idea-insights-grid">
-                        ${renderIdeaCaptureDetails()}
+                        ${renderIdeaCaptureDetails(project)}
                     </div>
                 </aside>
             </div>
@@ -473,17 +565,54 @@ function bindProjectSelection(root) {
         button.addEventListener('click', event => {
             event.stopPropagation();
             const projectId = decodeURIComponent(button.dataset.projectDetailsTrigger || '');
-            openProjectDetails(projectId);
+            openProjectDetails(projectId, 'story');
             playClickSound();
+        });
+    });
+
+    root.querySelectorAll('[data-project-select-details]').forEach(button => {
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            const projectId = decodeURIComponent(button.dataset.projectSelectDetails || '');
+            openProjectDetails(projectId, 'picker');
+            playClickSound();
+        });
+    });
+
+    root.querySelectorAll('[data-project-tech-toggle]').forEach(button => {
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            const disclosure = button.closest('.project-tech-disclosure');
+            const panel = disclosure?.querySelector('.project-tech-overflow');
+            if (!panel) return;
+            const willOpen = button.getAttribute('aria-expanded') !== 'true';
+            closeProjectTechnologyDisclosures(button);
+            button.setAttribute('aria-expanded', String(willOpen));
+            panel.hidden = !willOpen;
+            const count = Number(button.dataset.count) || 0;
+            button.textContent = `${willOpen ? '−' : '+'}${count}`;
+            button.setAttribute('aria-label', `${count} ${button.dataset.label || 'weitere Technologien'} ${willOpen ? 'ausblenden' : 'anzeigen'}`);
         });
     });
 }
 
-function openProjectDetails(projectId) {
+function closeProjectTechnologyDisclosures(exceptButton = null) {
+    document.querySelectorAll('[data-project-tech-toggle]').forEach(button => {
+        if (button === exceptButton) return;
+        button.setAttribute('aria-expanded', 'false');
+        button.textContent = `+${Number(button.dataset.count) || 0}`;
+        button.setAttribute('aria-label', `${Number(button.dataset.count) || 0} ${button.dataset.label || 'weitere Technologien'} anzeigen`);
+        const panel = button.closest('.project-tech-disclosure')?.querySelector('.project-tech-overflow');
+        if (panel) panel.hidden = true;
+    });
+}
+
+function openProjectDetails(projectId, returnMode = 'story') {
     const project = getProjectShowcaseItem(projectId);
-    if (!project || !['nivora', 'resume', 'idea-capture'].includes(project.showcaseKey)) return;
+    if (!project) return;
 
     projectDetailsReturnId = String(projectId);
+    projectDetailsReturnMode = returnMode === 'picker' ? 'picker' : 'story';
     if (String(selectedProjectShowcaseId) !== String(projectId)) {
         selectedProjectShowcaseId = String(projectId);
         renderProjects();
@@ -494,6 +623,9 @@ function openProjectDetails(projectId) {
         if (project.showcaseKey === 'resume') resumeWebsiteShowcaseController?.setDetailsOpen(true);
         if (project.showcaseKey === 'idea-capture') ideaCaptureShowcaseController?.setDetailsOpen(true);
         if (project.showcaseKey === 'nivora') nivoraDetailsController?.setOpen(true);
+        if (!['nivora', 'resume', 'idea-capture'].includes(project.showcaseKey)) {
+            openViewModal('project', project.id);
+        }
     });
 }
 
@@ -591,10 +723,18 @@ function bindProjectsUi() {
     if (!projectsKeyboardBound) {
         projectsKeyboardBound = true;
         document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeProjectTechnologyDisclosures();
             if (event.key === 'Escape' && projectsAllDrawerOpen) {
                 setProjectsDrawerOpen(false);
                 document.getElementById('projects-all-toggle')?.focus({ preventScroll: true });
             }
+        });
+    }
+
+    if (!projectsTechnologyDisclosureBound) {
+        projectsTechnologyDisclosureBound = true;
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.project-tech-disclosure')) closeProjectTechnologyDisclosures();
         });
     }
 }
@@ -624,7 +764,30 @@ function renderProjects() {
     const compactContainer = document.getElementById('projects-container');
     const detail = document.getElementById('project-showcase-detail');
     const allToggle = document.getElementById('projects-all-toggle');
+    const sidebar = document.querySelector('#projects .projects-sidebar');
+    const section = document.getElementById('projects');
     if (!compactContainer || !detail) return;
+
+    const content = getProjectsContent();
+    const layout = getProjectsLayout();
+    const title = document.getElementById('projects-heading-title');
+    const allLabel = document.getElementById('projects-all-toggle-label');
+    const drawerTitle = document.getElementById('projects-all-title');
+    const archiveKicker = document.getElementById('projects-archive-kicker');
+    const drawerSearch = document.getElementById('projects-all-search');
+    if (title) title.textContent = content.sectionTitle || 'Projekte';
+    if (allLabel) allLabel.textContent = content.allProjectsLabel || 'Alle Projekte';
+    if (drawerTitle) drawerTitle.textContent = content.allProjectsLabel || 'Alle Projekte';
+    if (archiveKicker) archiveKicker.textContent = content.archiveKicker || 'Portfolio';
+    if (drawerSearch) drawerSearch.placeholder = content.searchPlaceholder || 'Projekte durchsuchen …';
+    if (section) {
+        section.style.setProperty('--project-sidebar-width', `${layout.sidebarWidth || 344}px`);
+        section.style.setProperty('--project-picker-min-height', `${layout.pickerMinHeight || 104}px`);
+        section.style.setProperty('--project-insight-card-min-height', `${layout.insightCardMinHeight || 132}px`);
+        section.style.setProperty('--project-insight-gap', `${layout.insightGap || 12}px`);
+    }
+    document.documentElement.style.setProperty('--project-insight-card-min-height', `${layout.insightCardMinHeight || 132}px`);
+    document.documentElement.style.setProperty('--project-insight-gap', `${layout.insightGap || 12}px`);
 
     nivoraVideoShowcaseController?.destroy();
     nivoraVideoShowcaseController = null;
@@ -650,29 +813,32 @@ function renderProjects() {
     }
 
     if (allToggle) {
-        allToggle.hidden = false;
-        allToggle.setAttribute('aria-label', `Alle ${projects.length} Projekte anzeigen`);
+        allToggle.hidden = projects.length <= 3;
+        allToggle.setAttribute('aria-label', `${content.allProjectsLabel || 'Alle Projekte'}: ${projects.length}`);
     }
+    sidebar?.classList.toggle('has-project-archive', projects.length > 3);
 
     renderCompactProjectList();
     renderAllProjectList();
-    detail.innerHTML = renderProjectDetail(getProjectShowcaseItem(selectedProjectShowcaseId));
+    const selectedProject = getProjectShowcaseItem(selectedProjectShowcaseId);
+    detail.innerHTML = renderProjectDetail(selectedProject);
+    bindProjectSelection(detail);
     bindProjectsUi();
 
     const nivoraRoot = detail.querySelector('[data-nivora-showcase]');
     if (nivoraRoot) {
-        nivoraVideoShowcaseController = new NivoraVideoShowcase(nivoraRoot);
+        nivoraVideoShowcaseController = new NivoraVideoShowcase(nivoraRoot, getProjectFeatures(selectedProject, NIVORA_VIDEO_FEATURES));
         nivoraDetailsController = new ProjectInsightsController(nivoraRoot, '[data-nivora-details]');
     }
 
     const resumeRoot = detail.querySelector('[data-resume-showcase]');
     if (resumeRoot) {
-        resumeWebsiteShowcaseController = new ResumeWebsiteShowcase(resumeRoot);
+        resumeWebsiteShowcaseController = new ResumeWebsiteShowcase(resumeRoot, getProjectFeatures(selectedProject, RESUME_WEBSITE_FEATURES));
     }
 
     const ideaRoot = detail.querySelector('[data-idea-showcase]');
     if (ideaRoot) {
-        ideaCaptureShowcaseController = new IdeaCaptureShowcase(ideaRoot);
+        ideaCaptureShowcaseController = new IdeaCaptureShowcase(ideaRoot, getProjectFeatures(selectedProject, IDEA_CAPTURE_FEATURES));
     }
 }
 
@@ -710,10 +876,7 @@ class ProjectInsightsController {
         if (!this.layer) return;
         const isOpen = Boolean(open);
         clearTimeout(this.closeTimer);
-        document.querySelectorAll('[data-project-details-trigger]').forEach(button => {
-            const buttonProjectId = decodeURIComponent(button.dataset.projectDetailsTrigger || '');
-            button.setAttribute('aria-expanded', String(isOpen && String(buttonProjectId) === String(projectDetailsReturnId)));
-        });
+        setProjectDetailsExpandedState(isOpen);
         if (isOpen) {
             this.updateBoundary();
             this.layer.hidden = false;
@@ -733,13 +896,7 @@ class ProjectInsightsController {
         };
         if (immediate) finish();
         else this.closeTimer = setTimeout(finish, 280);
-        if (restoreFocus && projectDetailsReturnId) {
-            requestAnimationFrame(() => {
-                const encodedId = encodeInlineId(projectDetailsReturnId);
-                const triggers = [...document.querySelectorAll(`[data-project-details-trigger="${encodedId}"]`)];
-                triggers.find(button => button.offsetParent !== null)?.focus({ preventScroll: true });
-            });
-        }
+        if (restoreFocus && projectDetailsReturnId) requestAnimationFrame(restoreProjectDetailsFocus);
     }
 
     destroy() {
@@ -752,9 +909,9 @@ class ProjectInsightsController {
 }
 
 class IdeaCaptureShowcase {
-    constructor(root) {
+    constructor(root, features = IDEA_CAPTURE_FEATURES) {
         this.root = root;
-        this.features = Array.isArray(IDEA_CAPTURE_FEATURES) ? IDEA_CAPTURE_FEATURES : [];
+        this.features = Array.isArray(features) ? features : [];
         this.index = 0;
         this.loadedVideo = '';
         this.isVisible = false;
@@ -768,19 +925,17 @@ class IdeaCaptureShowcase {
         this.phone = root.querySelector('[data-idea-phone]');
         this.stage = root.querySelector('#idea-stage-panel');
         this.visibilityTarget = root.querySelector('[data-idea-visibility-target]') || root;
-        this.textFrame = root.querySelector('[data-idea-text-frame]');
         this.tabs = root.querySelector('[data-idea-tabs]');
         this.progress = root.querySelector('[data-idea-progress]');
         this.loader = root.querySelector('[data-idea-loader]');
-        this.textEyebrow = root.querySelector('[data-idea-text-eyebrow]');
-        this.textTitle = root.querySelector('[data-idea-text-title]');
-        this.textDescription = root.querySelector('[data-idea-text-description]');
-        this.textPoints = root.querySelector('[data-idea-text-points]');
+        this.eyebrow = root.querySelector('[data-idea-eyebrow]');
+        this.title = root.querySelector('[data-idea-title]');
+        this.description = root.querySelector('[data-idea-description]');
         this.detailsController = new ProjectInsightsController(root, '[data-idea-details]');
         this.boundVisibilityHandler = () => this.handleDocumentVisibility();
         this.boundViewportHandler = () => this.scheduleViewportCheck();
 
-        if (!this.image || !this.video || !this.phone || !this.stage || !this.textFrame || !this.tabs || !this.features.length) return;
+        if (!this.image || !this.video || !this.phone || !this.stage || !this.tabs || !this.features.length) return;
         this.video.muted = true;
         this.video.defaultMuted = true;
         this.renderTabs();
@@ -897,6 +1052,9 @@ class IdeaCaptureShowcase {
         this.index = index;
         const feature = this.features[index];
         this.stage.setAttribute('aria-labelledby', `idea-tab-${feature.id}`);
+        if (this.eyebrow) this.eyebrow.textContent = feature.eyebrow;
+        if (this.title) this.title.textContent = feature.title;
+        if (this.description) this.description.textContent = feature.description;
         this.root.style.setProperty('--idea-progress', '0%');
         this.progress?.setAttribute('aria-valuenow', '0');
         this.root.classList.remove('idea-has-media-error');
@@ -908,30 +1066,11 @@ class IdeaCaptureShowcase {
             if (selected && focus) button.focus();
         });
 
-        if (feature.kind === 'text') {
-            this.showText(feature);
-        } else {
-            this.showPhone(feature, { load, restart });
-        }
+        this.showPhone(feature, { load, restart });
         refreshIcons();
     }
 
-    showText(feature) {
-        this.unloadVideo();
-        this.phone.hidden = true;
-        this.textFrame.hidden = false;
-        this.textEyebrow.textContent = feature.eyebrow;
-        this.textTitle.textContent = feature.title;
-        this.textDescription.textContent = feature.description;
-        this.textPoints.innerHTML = (Array.isArray(feature.points) ? feature.points : [])
-            .map(point => `<li><i data-lucide="check"></i><span>${escapeHtml(point)}</span></li>`)
-            .join('');
-        this.setLoading(false);
-    }
-
     showPhone(feature, { load = false, restart = false } = {}) {
-        this.phone.hidden = false;
-        this.textFrame.hidden = true;
         this.image.src = feature.image || '';
         this.image.alt = `${feature.navLabel} von Idea Capture`;
         this.image.hidden = false;
@@ -1056,9 +1195,9 @@ class IdeaCaptureShowcase {
 }
 
 class ResumeWebsiteShowcase {
-    constructor(root) {
+    constructor(root, features = RESUME_WEBSITE_FEATURES) {
         this.root = root;
-        this.features = Array.isArray(RESUME_WEBSITE_FEATURES) ? RESUME_WEBSITE_FEATURES : [];
+        this.features = Array.isArray(features) ? features : [];
         this.index = 0;
         this.loadedVideo = '';
         this.detailsCloseTimer = null;
@@ -1233,10 +1372,7 @@ class ResumeWebsiteShowcase {
         const isOpen = Boolean(open);
         clearTimeout(this.detailsCloseTimer);
 
-        document.querySelectorAll('[data-project-details-trigger]').forEach(button => {
-            const buttonProjectId = decodeURIComponent(button.dataset.projectDetailsTrigger || '');
-            button.setAttribute('aria-expanded', String(isOpen && String(buttonProjectId) === String(projectDetailsReturnId)));
-        });
+        setProjectDetailsExpandedState(isOpen);
 
         if (isOpen) {
             this.updateDetailsBoundary();
@@ -1261,13 +1397,7 @@ class ResumeWebsiteShowcase {
         if (immediate) finishClose();
         else this.detailsCloseTimer = setTimeout(finishClose, 280);
 
-        if (restoreFocus && projectDetailsReturnId) {
-            requestAnimationFrame(() => {
-                const encodedId = encodeInlineId(projectDetailsReturnId);
-                const triggers = [...document.querySelectorAll(`[data-project-details-trigger="${encodedId}"]`)];
-                triggers.find(button => button.offsetParent !== null)?.focus({ preventScroll: true });
-            });
-        }
+        if (restoreFocus && projectDetailsReturnId) requestAnimationFrame(restoreProjectDetailsFocus);
     }
 
     handleDocumentKeydown(event) {
@@ -1287,9 +1417,9 @@ class ResumeWebsiteShowcase {
 }
 
 class NivoraVideoShowcase {
-    constructor(root) {
+    constructor(root, features = NIVORA_VIDEO_FEATURES) {
         this.root = root;
-        this.features = Array.isArray(NIVORA_VIDEO_FEATURES) ? NIVORA_VIDEO_FEATURES : [];
+        this.features = Array.isArray(features) ? features : [];
         this.index = 0;
         this.loadedSource = '';
         this.isVisible = false;
@@ -1430,9 +1560,7 @@ class NivoraVideoShowcase {
 
         this.eyebrow.textContent = feature.eyebrow;
         this.title.textContent = feature.title;
-        this.description.textContent = index === 0
-            ? 'Nivora verbindet Ziele, Fähigkeiten, Fokus und Belohnungen zu einem gemeinsamen Lernsystem. Aktuell sammle ich Daten, um seine Wirkung später ehrlich auszuwerten.'
-            : feature.description;
+        this.description.textContent = feature.description;
         this.video.poster = feature.poster;
         this.video.setAttribute('aria-label', `${feature.navLabel}: kurze Produktdemo`);
         this.video.parentElement?.setAttribute('aria-labelledby', `nivora-tab-${feature.id}`);
