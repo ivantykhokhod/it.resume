@@ -30,8 +30,17 @@ function getSafeImageUrl(value) {
 }
 
 function getSafeLinkUrl(value) {
-    const raw = String(value || '').trim();
+    let raw = String(value || '').trim();
     if (!raw || raw === '#') return '#';
+
+    // Exported document links may still point to a folder on a Windows PC.
+    // Resolve packaged PDFs relative to this site, also on GitHub project pages.
+    const localPath = raw.replace(/\\/g, '/');
+    if (/^(?:file:|[a-z]:\/)/i.test(localPath)) {
+        const documentPath = localPath.match(/(?:^|\/)(assets\/documents\/.+)$/i);
+        if (documentPath) raw = documentPath[1];
+    }
+
     try {
         const parsed = new URL(raw, window.location.href);
         return ['http:', 'https:', 'file:', 'blob:', 'mailto:', 'tel:'].includes(parsed.protocol) ? raw : '#';
