@@ -421,13 +421,45 @@ function normalizeRootData(value) {
     return normalized;
 }
 
+function getBundledSiteData() {
+    return cloneData(isPlainObject(window.GX_BUNDLED_SITE_DATA)
+        ? window.GX_BUNDLED_SITE_DATA
+        : defaultData);
+}
+
+async function loadPublishedData() {
+    const bundledData = getBundledSiteData();
+    // A classic-script snapshot also works when index.html is opened directly.
+    if (!['http:', 'https:'].includes(window.location.protocol)) return bundledData;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+        // Resolve relative to index.html, including GitHub Pages project paths.
+        const response = await fetch(new URL('data.json', document.baseURI), {
+            cache: 'no-cache',
+            signal: controller.signal
+        });
+        if (!response.ok) throw new Error(`data.json: HTTP ${response.status}`);
+        const publishedData = await response.json();
+        if (!isPlainObject(publishedData)) throw new Error('data.json muss ein Objekt enthalten.');
+        return publishedData;
+    } catch (error) {
+        console.warn('data.json konnte nicht geladen werden. Mitgelieferte Daten werden verwendet:', error);
+        return bundledData;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
 let state = {
-    data: cloneData(defaultData),
+    data: getBundledSiteData(),
     expanded: { projects: false, books: false, documents: false }
 };
 
 // Загрузка данных
-function loadData() {
+async function loadData() {
+    const publishedData = await loadPublishedData();
     let savedData = null;
     try {
         savedData = localStorage.getItem('gxResumeData');
@@ -440,11 +472,11 @@ function loadData() {
             state.data = normalizeRootData(JSON.parse(savedData));
         } catch (error) {
             console.error('Fehler beim Laden von gxResumeData:', error);
-            state.data = cloneData(defaultData);
-            showToast('Gespeicherte Daten waren beschädigt. Die Standarddaten wurden geladen.', 'error');
+            state.data = cloneData(publishedData);
+            showToast('Gespeicherte Daten waren beschädigt. Die Daten der Website wurden geladen.', 'error');
         }
     } else {
-        state.data = cloneData(defaultData);
+        state.data = cloneData(publishedData);
     }
 
     state.data = normalizeRootData(state.data);

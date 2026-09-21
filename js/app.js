@@ -49,5 +49,9 @@ document.getElementById('global-modal').addEventListener('click', (e) => {
 });
 
 // Запуск CMS
-loadData();
-loadBundledStartseiteImages();
+loadData().then(() => {
+    const hasConfiguredPhotos = state.data.profile.images.some(source =>
+        source && !source.startsWith('data:image/svg+xml')
+    );
+    if (!hasConfiguredPhotos) return loadBundledStartseiteImages();
+});
