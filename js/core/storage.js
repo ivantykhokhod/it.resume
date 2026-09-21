@@ -427,7 +427,10 @@ function getBundledSiteData() {
         : defaultData);
 }
 
+let hasRemotePublishedData = false;
+
 async function loadPublishedData() {
+    hasRemotePublishedData = false;
     const bundledData = getBundledSiteData();
     // A classic-script snapshot also works when index.html is opened directly.
     if (!['http:', 'https:'].includes(window.location.protocol)) return bundledData;
@@ -443,6 +446,7 @@ async function loadPublishedData() {
         if (!response.ok) throw new Error(`data.json: HTTP ${response.status}`);
         const publishedData = await response.json();
         if (!isPlainObject(publishedData)) throw new Error('data.json muss ein Objekt enthalten.');
+        hasRemotePublishedData = true;
         return publishedData;
     } catch (error) {
         console.warn('data.json konnte nicht geladen werden. Mitgelieferte Daten werden verwendet:', error);
@@ -457,9 +461,35 @@ let state = {
     expanded: { projects: false, books: false, documents: false }
 };
 
+// Bind local edits to the published version they were made against.
+// Untracked or older local data must not hide a newly published data.json.
+function getPublishedDataSignature(value) {
+    const ordered = item => {
+        if (Array.isArray(item)) return item.map(ordered);
+        if (!isPlainObject(item)) return item;
+        return Object.fromEntries(Object.keys(item).sort().map(key => [key, ordered(item[key])]));
+    };
+    const serialized = JSON.stringify(ordered(value));
+    let first = 0x811c9dc5;
+    let second = 0x9e3779b9;
+    for (let index = 0; index < serialized.length; index += 1) {
+        const code = serialized.charCodeAt(index);
+        first = Math.imul(first ^ code, 0x01000193);
+        second = Math.imul(second ^ code, 0x85ebca6b);
+    }
+    return `${serialized.length}:${(first >>> 0).toString(16)}:${(second >>> 0).toString(16)}`;
+}
+
+let activePublishedSignature = getPublishedDataSignature(getBundledSiteData());
+let pendingLocalDataBackup = null;
+
 // Загрузка данных
 async function loadData() {
     const publishedData = await loadPublishedData();
+    activePublishedSignature = getPublishedDataSignature(publishedData);
+    const hosted = ['http:', 'https:'].includes(window.location.protocol);
+    state.data = cloneData(publishedData);
+    pendingLocalDataBackup = null;
     let savedData = null;
     try {
         savedData = localStorage.getItem('gxResumeData');
@@ -469,17 +499,29 @@ async function loadData() {
 
     if (savedData) {
         try {
-            state.data = normalizeRootData(JSON.parse(savedData));
+            const localData = JSON.parse(savedData);
+            if (!isPlainObject(localData)) throw new Error('Gespeicherte Daten müssen ein Objekt enthalten.');
+            const savedSignature = localData.__gxPublishedBase;
+            delete localData.__gxPublishedBase;
+            const hasTrackedDraft = typeof savedSignature === 'string' && /^\d+:[0-9a-f]+:[0-9a-f]+$/.test(savedSignature);
+            if (!hosted || savedSignature === activePublishedSignature || (!hasRemotePublishedData && hasTrackedDraft)) {
+                state.data = localData;
+                if (hosted && !hasRemotePublishedData && hasTrackedDraft) {
+                    activePublishedSignature = savedSignature;
+                }
+            } else {
+                // Keep the old cache untouched. Archive it before a later admin save.
+                pendingLocalDataBackup = savedData;
+            }
         } catch (error) {
+            pendingLocalDataBackup = savedData;
             console.error('Fehler beim Laden von gxResumeData:', error);
-            state.data = cloneData(publishedData);
             showToast('Gespeicherte Daten waren beschädigt. Die Daten der Website wurden geladen.', 'error');
         }
-    } else {
-        state.data = cloneData(publishedData);
     }
 
     state.data = normalizeRootData(state.data);
+    delete state.data.__gxPublishedBase;
     renderAll();
     startSlideshow();
 }
@@ -487,7 +529,18 @@ async function loadData() {
 function saveData() {
     try {
         state.data = normalizeRootData(state.data);
-        localStorage.setItem('gxResumeData', JSON.stringify(state.data));
+        delete state.data.__gxPublishedBase;
+        if (pendingLocalDataBackup !== null) {
+            // If the backup cannot be saved, leave the existing data intact.
+            const backupKey = `gxResumeDataBackup-${getPublishedDataSignature(pendingLocalDataBackup)}`;
+            if (localStorage.getItem(backupKey) !== pendingLocalDataBackup) {
+                localStorage.setItem(backupKey, pendingLocalDataBackup);
+            }
+        }
+        // The marker belongs only to browser storage, not to exported site content.
+        const localData = { ...state.data, __gxPublishedBase: activePublishedSignature };
+        localStorage.setItem('gxResumeData', JSON.stringify(localData));
+        pendingLocalDataBackup = null;
         return true;
     } catch (error) {
         console.error('Daten konnten nicht gespeichert werden:', error);
